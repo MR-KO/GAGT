@@ -72,21 +72,33 @@ void mla(SDL_Surface *s, int x0, int y0, int x1, int y1, Uint32 colour) {
 
 	int y = y0;
 
+	double d = f(x0 + 1, y0 + 0.5, x0, y0, x1, y1);
+    printf("d= %g\n", d);
+
 	for(int x = x0; x != x1; x += ix) {
 		PutPixel(s, x, y, colour);
 		double rv = f(x + 1, y + 0.5, x0, y0, x1, y1);
 
-		printf("x = %d, y = %d, f = %g\n", x, y, rv);
+		printf("x = %d, y = %d, f = %g, d = %g\n", x, y, rv, d);
 
-		if (iy == -1 && rv > 0.0) {
-			printf("Incremented y!\n");
-			y += iy;
-		}
-
-		if (iy == 1 && rv < 0.0) {
-			printf("Incremented y!\n");
-			y += iy;
-		}
+		if (iy == 1) {
+            if (d < 0) {
+                y += iy;
+                d = d + ((x1 - x0) + (y0 - y1));
+            }
+            else if (d >= 0) {
+                d = d + (y0 - y1);
+            }
+        }
+        else if (iy == -1) {
+            if (d >= 0) {
+                y += iy;
+                d = d + (-(x1 - x0) + (y0 - y1));
+            }
+            else if (d < 0) {
+                d = d + (y0 - y1);
+            }
+        }
 	}
 
 	return;
