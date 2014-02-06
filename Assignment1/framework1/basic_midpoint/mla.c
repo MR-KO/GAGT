@@ -165,12 +165,12 @@ void mla(SDL_Surface *s, int x0, int y0, int x1, int y1, Uint32 colour) {
 				if (octant == 2 || octant == 6) {
 					if (d < 0) {
 						x += 1;
-						d = d + ((y1 - y0) + (x0 - x1));
+						d = d + (-(y1 - y0) + (x0 - x1));
 					} else if (d >= 0) {
 						d = d + (x0 - x1);
 					}
 				} else {
-					printf("else\n");
+					// printf("else\n");
 
 					if (d < 0) {
 						x += 1;
