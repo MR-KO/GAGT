@@ -36,64 +36,63 @@ double f(double x, double y, double x0, double y0, double x1, double y1) {
 }
 
 void determine_octant(double x0, double x1, double y0, double y1) {
-	double x = y1 - x0;
-	double y = y1 - y0;
-	double xy = x - y;
-	double slope = (y1 - y0) / (x1 - x0);
+    double x = x1 - x0;
+    double y = y1 - y0;
+    double xy = x - y;
 
-	if (x >= 0) {
-		if (y > 0) {
-			xy = x - y;
-		} else {
-			xy = x + y;
-		}
-	} else {
-		if (y > 0) {
-			xy = x + y;
-		} else {
-			xy = x - y;
-		}
-	}
+    if (x > 0) {
+        if (y >= 0) {
+            xy = x - y;
+        } else if (y < 0) {
+            xy = x + y;
+        }
+    } else if (x < 0) {
+        if (y >= 0) {
+            xy = x + y;
+        } else if (y < 0) {
+            xy = x - y;
+        }
+    } else if (x == 0) {
+        xy = x + y;
+    }
 
-	printf("x0 = %4g, y0 = %4g, x1 = %4g, y1 = %4g, slope = %9.6g:  ", x0, y0, x1, y1, slope);
-	printf("\tx1 - x0 = %4g, y1 - y0 = %4g, (x1 - x0) - (y1 - y0) = %4g ",
-		x, y, xy);
+    printf("x0 = %4g, y0 = %4g, x1 = %4g, y1 = %4g: ", x0, y0, x1, y1);
+    printf("\tx1 - x0 = %4g, y1 - y0 = %4g, (x1 - x0) - (y1 - y0) = %4g: ",
+        x, y, xy);
 
-
-	if (x >= 0 && y < 0 && xy >= 0) {
+    if (x > 0 && y < 0 && xy >= 0) {
         printf("\tFirst octant (0 < m <= 1)");
     }
 
-    if (x >= 0 && y < 0 && xy < 0) {
-        printf("Second octant (?)");
+    if (x >= 0 && y <= 0 && xy < 0) {
+        printf("\tSecond octant (?)");
     }
 
     if (x < 0 && y < 0 && xy >= 0) {
         printf("\tThird octant (?)");
     }
 
-    if (x < 0 && y < 0 && xy < 0) {
+    if (x < 0 && y <= 0 && xy < 0) {
         printf("\tFourth octant (?)");
     }
 
-    if (x < 0 && y >= 0 && xy < 0) {
+    if (x < 0 && y > 0 && xy <= 0) {
         printf("\tFifth octant (?)");
     }
 
-    if (x < 0 && y >= 0 && xy >= 0) {
+    if (x <= 0 && y >= 0 && xy > 0) {
         printf("\tSixth octant (-1 < m <= Inf)");
     }
 
-    if (x >= 0 && y >= 0 && xy < 0) {
+    if (x > 0 && y >= 0 && xy <= 0) {
         printf("\tSeventh octant (0 < m <= -1)");
     }
 
-    if (x >= 0 && y >= 0 && xy >= 0) {
-        printf("Eight octant (?)");
+    if (x > 0 && y >= 0 && xy > 0) {
+        printf("\tEight octant (?)");
     }
 
-
-	printf("\n");
+    printf("\n");
 }
 
 /*
@@ -114,7 +113,7 @@ void determine_octant(double x0, double x1, double y0, double y1) {
  *
  */
 void mla(SDL_Surface *s, int x0, int y0, int x1, int y1, Uint32 colour) {
-	int ix = 1, iy = 1, temp = -1;
+	int ix = 1, iy = 1;//, temp = -1;
 
 	// PutPixel(s, x0, y0, colour);
 	// PutPixel(s, x1, y1, colour);
@@ -122,13 +121,15 @@ void mla(SDL_Surface *s, int x0, int y0, int x1, int y1, Uint32 colour) {
 	if (x1 > x0) {
 		ix = 1;
 	} else {
-		temp = x1;
-		x1 = x0;
-		x0 = temp;
+		// temp = x1;
+		// x1 = x0;
+		// x0 = temp;
 
-		temp = y1;
-		y1 = y0;
-		y0 = temp;
+		// temp = y1;
+		// y1 = y0;
+		// y0 = temp;
+
+		ix = -1;
 	}
 
 	if (y1 > y0) {
@@ -141,7 +142,7 @@ void mla(SDL_Surface *s, int x0, int y0, int x1, int y1, Uint32 colour) {
 
 	int y = y0;
 	double d = f(x0 + 1, y0 + 0.5, x0, y0, x1, y1);
-    // printf("d = %g\n", d);
+	// printf("d = %g\n", d);
 
 	for(int x = x0; x != x1; x += ix) {
 		PutPixel(s, x, y, colour);
@@ -150,20 +151,20 @@ void mla(SDL_Surface *s, int x0, int y0, int x1, int y1, Uint32 colour) {
 		// printf("x = %d, y = %d, f = %g, d = %g\n", x, y, rv, d);
 
 		if (iy == 1) {
-            if (d < 0) {
-                y += 1;
-                d = d + ((x1 - x0) + (y0 - y1));
-            } else if (d >= 0) {
-                d = d + (y0 - y1);
-            }
-        } else if (iy == -1) {
-            if (d >= 0) {
-                y += -1;
-                d = d + (-(x1 - x0) + (y0 - y1));
-            } else if (d < 0) {
-                d = d + (y0 - y1);
-            }
-        }
+			if (d < 0) {
+				y += 1;
+				d = d + ((x1 - x0) + (y0 - y1));
+			} else if (d >= 0) {
+				d = d + (y0 - y1);
+			}
+		} else if (iy == -1) {
+			if (d >= 0) {
+				y += -1;
+				d = d + (-(x1 - x0) + (y0 - y1));
+			} else if (d < 0) {
+				d = d + (y0 - y1);
+			}
+		}
 	}
 
 	return;
