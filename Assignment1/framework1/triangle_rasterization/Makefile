@@ -1,7 +1,7 @@
 CC=gcc
 
 WARNING_FLAGS=-Wall -Wextra -Werror-implicit-function-declaration -Wshadow -Wstrict-prototypes -pedantic-errors
-CFLAGS=-g -O2 -std=c99 $(WARNING_FLAGS)
+CFLAGS=-g -O2 -std=c99 $(WARNING_FLAGS) -lm
 LDFLAGS=-g -lGL -lglut -lGLU
 
 .c.o:
