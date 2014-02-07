@@ -4,11 +4,11 @@
  * Description ..... Midpoint Line Algorithm
  * Created by ...... Jurgen Sturm
  *
- * Student name ....
- * Student email ...
- * Collegekaart ....
- * Date ............
- * Comments ........
+ * Student name .... Kevin Ouwehand & Timo Dobber
+ * Student email ... c0nd3mn3d@hotmail.com & timo.dobber@gmail.com
+ * Collegekaart .... 10420908 & 10386726
+ * Date ............ 07/02/2014
+ * Comments ........ NULL
  *
  *
  * (always fill in these fields before submitting!!)
@@ -16,25 +16,17 @@
 
 #include "SDL.h"
 #include "init.h"
+#include "mla.h"
 
-inline double f_01(int x, int y, double x0, double y0, double x1, double y1) {
-	return (y0 - y1) * x + (x1 - x0) * y + x0 * y1 - x1 * y0;
-}
-
-inline double f_12(int x, int y, double x1, double y1, double x2, double y2) {
-	return (y1 - y1) * x + (x2 - x1) * y + x1 * y2 - x2 * y1;
-}
-
-inline double f_20(int x, int y, double x0, double y0, double x2, double y2) {
-	return (y2 - y0) * x + (x0 - x2) * y + x2 * y0 - x0 * y2;
-}
-
-
-
+/* Define the function used to calculate d. */
 double f(double x, double y, double x0, double y0, double x1, double y1) {
-	return (y0 - y1) * x + (x1 - x0) * y + x0 * y1 - x1 * y0;
+    return (y0 - y1) * x + (x1 - x0) * y + x0 * y1 - x1 * y0;
 }
 
+/* 
+ * Determines in which octant the line will fall, first octant is 0-45 degrees,
+ * second octant is 45-90 degrees and so on.
+ */
 int determine_octant(double x0, double x1, double y0, double y1) {
     double x = x1 - x0;
     double y = y1 - y0;
@@ -56,47 +48,35 @@ int determine_octant(double x0, double x1, double y0, double y1) {
         xy = x + y;
     }
 
-    printf("x0 = %4g, y0 = %4g, x1 = %4g, y1 = %4g: ", x0, y0, x1, y1);
-    printf("\tx1 - x0 = %4g, y1 - y0 = %4g, (x1 - x0) - (y1 - y0) = %4g: ",
-        x, y, xy);
-
     if (x > 0 && y < 0 && xy >= 0) {
-        printf("\tFirst octant (0 < m <= 1)\n");
         return 1;
     }
 
     if (x >= 0 && y <= 0 && xy < 0) {
-        printf("\tSecond octant (?)\n");
         return 2;
     }
 
     if (x < 0 && y < 0 && xy >= 0) {
-        printf("\tThird octant (?)\n");
         return 3;
     }
 
     if (x < 0 && y <= 0 && xy < 0) {
-        printf("\tFourth octant (?)\n");
         return 4;
     }
 
     if (x < 0 && y > 0 && xy <= 0) {
-        printf("\tFifth octant (?)\n");
         return 5;
     }
 
     if (x <= 0 && y >= 0 && xy > 0) {
-        printf("\tSixth octant (-1 < m <= Inf)\n");
         return 6;
     }
 
     if (x > 0 && y >= 0 && xy <= 0) {
-        printf("\tSeventh octant (0 < m <= -1)\n");
         return 7;
     }
 
     if (x > 0 && y >= 0 && xy > 0) {
-        printf("\tEight octant (?)\n");
         return 8;
     }
 
@@ -121,94 +101,90 @@ int determine_octant(double x0, double x1, double y0, double y1) {
  *
  */
 void mla(SDL_Surface *s, int x0, int y0, int x1, int y1, Uint32 colour) {
-	int ix = 1, iy = 1, temp = -1;
+    int ix = 1, iy = 1, temp = -1;
+    int octant = determine_octant(x0, x1, y0, y1);
+    int* to_increment = malloc(sizeof(int));
 
-	// PutPixel(s, x0, y0, colour);
-	// PutPixel(s, x1, y1, colour);
+    if (to_increment == NULL) {
+        return;
+    }
 
-	int octant = determine_octant(x0, x1, y0, y1);
+    if (octant == -1) {
+        return;
+    }
 
-	if (octant == -1) {
-		return;
-	}
+    /* Swap x1 and x0 when x1 is smaller than x0. */
+    if (x1 > x0) {
+        ix = 1;
+    } else {
+        temp = x1;
+        x1 = x0;
+        x0 = temp;
 
-	if (x1 > x0) {
-		ix = 1;
-	} else {
-		temp = x1;
-		x1 = x0;
-		x0 = temp;
+        temp = y1;
+        y1 = y0;
+        y0 = temp;
+    }
 
-		temp = y1;
-		y1 = y0;
-		y0 = temp;
+    if (y1 > y0) {
+        iy = 1;
+    } else {
+        iy = -1;
+    }
 
-		// ix = -1;
-	}
+    /* 
+     *  Checks whether the line is steep, because then the x and y need to
+     *  be swapped. 
+     */
+    if (octant == 2 || octant == 3 || octant == 6 || octant == 7) {
+        (*to_increment) = x0;
+        double d = f(x0 + 1, y0 + 0.5, x0, y0, x1, y1);
 
-	if (y1 > y0) {
-		iy = 1;
-	} else {
-		iy = -1;
-	}
+        for (int y = y0; y != y1; y += iy) {
+            PutPixel(s, *to_increment, y, colour);
 
-	if (octant == 2 || octant == 3 || octant == 6 || octant == 7) {
-		printf("Weirdo octant of %d!\n", octant);
+            /* 
+             *  Octant 2 and 6 need to be seperated since they both have an 
+             *  exact vertical line, in opposite directions.
+             */
+            if (octant == 2 || octant == 6) {
+                d = check_conditions(d, x0, x1, y1, y0, x0, x1, -1, ix,
+                    to_increment);
+            } else {
+                d = check_conditions(d, x0, x1, y1, y0, x0, x1, 1, ix,
+                    to_increment);
+            }
+        }
+    } else {
+        (*to_increment) = y0;
+        double d = f(x0 + 1, y0 + 0.5, x0, y0, x1, y1);
 
-		int x = x0;
-		double d = f(x0 + 1, y0 + 0.5, x0, y0, x1, y1);
+        for (int x = x0; x != x1; x += ix) {
+            PutPixel(s, x, *to_increment, colour);
+            d = check_conditions(d, x0, x1, x1, x0, y0, y1, iy, iy, to_increment);
+        }
+    }
 
-		for (int y = y0; y != y1; y += iy) {
-			PutPixel(s, x, y, colour);
+    return;
+}
 
-			if (ix == 1) {
-				if (octant == 2 || octant == 6) {
-					if (d < 0) {
-						x += 1;
-						d = d + (-(y1 - y0) + (x0 - x1));
-					} else if (d >= 0) {
-						d = d + (x0 - x1);
-					}
-				} else {
-					// printf("else\n");
+/*
+ * Checks all the conditions and calculates the new d incremental.
+ */
+double check_conditions(double d, int x0, int x1, int left_1, int left_2,
+    int right_1, int right_2, int sign, int increment_value, int* to_increment) {
 
-					if (d < 0) {
-						x += 1;
-						d = d + ((y1 - y0) + (x0 - x1));
-					} else if (d >= 0) {
-						d = d + (x0 - x1);
-					}
-				}
-			}
-		}
-	} else {
-		int y = y0;
-		double d = f(x0 + 1, y0 + 0.5, x0, y0, x1, y1);
-		// printf("d = %g\n", d);
+    if ((increment_value == 1 && d < 0) || (increment_value == -1 && d >= 0)) {
+        if (x1 - x0 == 0) {
+            d = d + (right_1 - right_2);
+        }
+        else {
+            (*to_increment) += increment_value;
+            d = d + (sign * (left_1 - left_2) + (right_1 - right_2));
+        }
+    } else if ((increment_value == 1 && d >= 0) || (increment_value == -1 && d < 0)) {
+        d = d + (right_1 - right_2);
+    }
 
-		for (int x = x0; x != x1; x += ix) {
-			PutPixel(s, x, y, colour);
-			// double rv = f(x + 1, y + 0.5, x0, y0, x1, y1);
-
-			// printf("x = %d, y = %d, f = %g, d = %g\n", x, y, rv, d);
-
-			if (iy == 1) {
-				if (d < 0) {
-					y += 1;
-					d = d + ((x1 - x0) + (y0 - y1));
-				} else if (d >= 0) {
-					d = d + (y0 - y1);
-				}
-			} else if (iy == -1) {
-				if (d >= 0) {
-					y += -1;
-					d = d + (-(x1 - x0) + (y0 - y1));
-				} else if (d < 0) {
-					d = d + (y0 - y1);
-				}
-			}
-		}
-	}
-
-	return;
+    return d;
 }
