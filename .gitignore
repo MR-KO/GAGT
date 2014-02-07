@@ -1,2 +1,5 @@
 *.o
 main
+trirast
+gimbal
+transformations
