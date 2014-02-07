@@ -75,7 +75,7 @@ void PutPixel(int x, int y, byte r, byte g, byte b)
 
         // Second call
         if (framebuffer[3 * (framebuffer_width * y + x)] == 128) {
-            printf("\nPutPixel called again for this pixel...\n");
+            // printf("\nPutPixel called again for this pixel...\n");
 
             // "Update" the pixel
             framebuffer[3 * (framebuffer_width * y + x)] = 255;
@@ -84,7 +84,7 @@ void PutPixel(int x, int y, byte r, byte g, byte b)
 
         // Third or higher call
         if (framebuffer[3 * (framebuffer_width * y + x)] == 255) {
-            printf("PutPixel called 2 times or more for this pixel!!!.\n");
+            // printf("PutPixel called 2 times or more for this pixel!!!.\n");
 
             // Do nothing
             return;
@@ -359,8 +359,6 @@ KeyPressed(unsigned char key, int x, int y)
 int
 main(int argc, char **argv)
 {
-    color_by_putpixel_count = 1;
-
     glutInit(&argc, argv);
 
     glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
