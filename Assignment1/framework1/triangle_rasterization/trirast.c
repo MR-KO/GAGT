@@ -153,6 +153,9 @@ void draw_triangle_optimized(float x0, float y0, float x1, float y1, float x2, f
 		float beta_backup = beta;
 		float gamma_backup = gamma;
 
+		int has_drawed = 0;
+		int has_drawed_later = 0;
+
 		for (int x = xmin; x < xmax; x++) {
 			/* Only draw the pixel if it is inside the triangle */
 			if (alpha >= 0 && beta >= 0 && gamma >= 0) {
@@ -166,6 +169,11 @@ void draw_triangle_optimized(float x0, float y0, float x1, float y1, float x2, f
 					((beta > 0) || (f_beta_off > 0)) &&
 					((gamma > 0) || (f_gamma_off > 0))) {
 
+					if (has_drawed) {
+						has_drawed_later = 1;
+					}
+
+					has_drawed = 1;
 					PutPixel(x, y, r, g, b);
 				} else if (
 					/*
@@ -176,7 +184,19 @@ void draw_triangle_optimized(float x0, float y0, float x1, float y1, float x2, f
 					((beta > 0) || (f_beta_off_backup > 0)) &&
 					((gamma > 0) || (f_gamma_off_backup > 0))) {
 
+					if (has_drawed) {
+						has_drawed_later = 1;
+					}
+
+					has_drawed = 1;
 					PutPixel(x, y, r, g, b);
+				} else {
+					/* If we have drawed before, and stopped drawing, break */
+					if (has_drawed && !has_drawed_later) {
+						has_drawed = 0;
+						has_drawed_later = 0;
+						break;
+					}
 				}
 			}
 
