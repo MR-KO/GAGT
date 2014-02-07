@@ -23,15 +23,15 @@
 
 /* Lines through the points P0 (x0, y0), P1 (x1, y1) and P2 (x2, y2) */
 inline float f_01(int x, int y, float x0, float y0, float x1, float y1) {
-    return (y0 - y1) * x + (x1 - x0) * y + x0 * y1 - x1 * y0;
+	return (y0 - y1) * x + (x1 - x0) * y + x0 * y1 - x1 * y0;
 }
 
 inline float f_12(int x, int y, float x1, float y1, float x2, float y2) {
-    return (y1 - y2) * x + (x2 - x1) * y + x1 * y2 - x2 * y1;
+	return (y1 - y2) * x + (x2 - x1) * y + x1 * y2 - x2 * y1;
 }
 
 inline float f_20(int x, int y, float x0, float y0, float x2, float y2) {
-    return (y2 - y0) * x + (x0 - x2) * y + x2 * y0 - x0 * y2;
+	return (y2 - y0) * x + (x0 - x2) * y + x2 * y0 - x0 * y2;
 }
 
 
@@ -41,11 +41,8 @@ inline float f_20(int x, int y, float x0, float y0, float x2, float y2) {
  * (x0,y0), (x1,y1) and (x2,y2).
  * The triangle is drawn in color (r,g,b).
  */
-
-
-/* Draws a triangle by filling in all the pixels "inside" the triangle */
 void draw_triangle(float x0, float y0, float x1, float y1, float x2, float y2,
-    byte r, byte g, byte b) {
+	byte r, byte g, byte b) {
 
 	float alpha = 0, beta = 0, gamma = 0;
 
@@ -103,11 +100,14 @@ void draw_triangle(float x0, float y0, float x1, float y1, float x2, float y2,
 }
 
 /*
-	Draws a triangle by filling in all the pixels "inside" the triangle.
-	This version uses various optimization tweaks, like incremental calculations.
-*/
+ * Rasterize a single triangle.
+ * The triangle is specified by its corner coordinates
+ * (x0,y0), (x1,y1) and (x2,y2).
+ * The triangle is drawn in color (r,g,b).
+ * This version uses various optimization tweaks, like incremental calculations.
+ */
 void draw_triangle_optimized(float x0, float y0, float x1, float y1, float x2, float y2,
-    byte r, byte g, byte b) {
+	byte r, byte g, byte b) {
 
 	/*
 		Define non-changing variables. This will increase the setup time, but allows
