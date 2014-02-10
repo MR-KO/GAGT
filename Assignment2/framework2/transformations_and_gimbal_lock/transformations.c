@@ -87,19 +87,11 @@ void myRotatef(GLfloat angle, GLfloat x, GLfloat y, GLfloat z)
     // Compute the value of t, based on w
     int i = getSmallest(fabs(w[0]), fabs(w[1]), fabs(w[2]));
 
-    if (i == 0) {
-        t[0] = 1;
-        t[1] = w[1];
-        t[2] = w[2];
-    } else if (i == 1) {
-        t[0] = w[0];
-        t[0] = 1;
-        t[2] = w[2];
-    } else if (i == 2) {
-        t[0] = w[0];
-        t[1] = w[1];
-        t[0] = 1;
-    }
+    t[0] = w[0];
+    t[1] = w[1];
+    t[2] = w[2];
+    t[i] = 1;
+
     // printf("x = %g, y = %g, z = %g\n", t[0], t[1], t[2]);
 
     // Compute u = t x w  /  || t x w ||
@@ -177,7 +169,9 @@ void myRotatef(GLfloat angle, GLfloat x, GLfloat y, GLfloat z)
     };
 
     // Convert 'angle' to radians
-    angle = angle * M_PI / 180.0;
+    // TODO: Solve WTF?
+    // angle = -1.0 * angle * M_PI / 180.0;     // works xD
+    angle = angle * M_PI / 180.0;               // doesn't work xD
 
     // Specify matrix B
 
