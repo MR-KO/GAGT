@@ -137,19 +137,19 @@ void myRotatef(GLfloat angle, GLfloat x, GLfloat y, GLfloat z)
     // a good idea to the check the vector values.
     GLfloat ortho = v[0] * u[0] + v[1] * u[1] + v[2] * u[2];
 
-    if (ortho != 0) {
+    if (ortho != 0.0) {
         printf("v and u are not orthogonal! (v.u = %g)\n", ortho);
     }
 
     ortho = v[0] * w[0] + v[1] * w[1] + v[2] * w[2];
 
-    if (ortho != 0) {
+    if (ortho != 0.0) {
         printf("v and w are not orthogonal! (v.w = %g)\n", ortho);
     }
 
     ortho = w[0] * u[0] + w[1] * u[1] + w[2] * u[2];
 
-    if (ortho != 0) {
+    if (ortho != 0.0) {
         printf("w and u are not orthogonal! (w.u = %g)\n", ortho);
     }
 
@@ -158,7 +158,7 @@ void myRotatef(GLfloat angle, GLfloat x, GLfloat y, GLfloat z)
     // 2. Set up the three matrices making up the rotation
     //
 
-    // Specify matrix A
+    // Specify matrix A consisting of u, v, and w
 
     GLfloat A[16] =
     {
@@ -170,10 +170,10 @@ void myRotatef(GLfloat angle, GLfloat x, GLfloat y, GLfloat z)
 
     // Convert 'angle' to radians
     // TODO: Solve WTF?
-    // angle = -1.0 * angle * M_PI / 180.0;     // works xD
-    angle = angle * M_PI / 180.0;               // doesn't work xD
+    angle = -1.0 * angle * M_PI / 180.0;            // works xD
+    // angle = angle * M_PI / 180.0;                   // doesn't work xD
 
-    // Specify matrix B
+    // Specify matrix B that rotates over angle over the z-axis
 
     GLfloat B[16] =
     {
@@ -183,7 +183,7 @@ void myRotatef(GLfloat angle, GLfloat x, GLfloat y, GLfloat z)
         0.0, 0.0, 0.0, 1.0
     };
 
-    // Specify matrix C
+    // Specify matrix C consisting of u, v, and w
 
     GLfloat C[16] =
     {
