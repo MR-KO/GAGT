@@ -23,8 +23,8 @@
 #define M_PI           3.14159265358979323846  /* pi */
 #endif
 
-void myScalef(GLfloat x, GLfloat y, GLfloat z)
-{
+void myScalef(GLfloat x, GLfloat y, GLfloat z) {
+
     GLfloat M[16] =
     {
         x, 0.0, 0.0, 0.0,
@@ -59,14 +59,68 @@ void myRotatef(GLfloat angle, GLfloat x, GLfloat y, GLfloat z)
     //
 
     // Store the incoming rotation axis in w and normalize w
+    w[0] = x;
+    w[1] = y;
+    w[2] = z;
+
+    GLfloat length = sqrt((w[0] * w[0]) + (w[1] * w[1]) + (w[2] * w[2]));
+    w[0] = w[0] / length;
+    w[1] = w[1] / length;
+    w[2] = w[2] / length;
+
+    printf("wx = %g, wy = %g, wz = %g, length = %g\n", w[0], w[1], w[2], length);
 
     // Compute the value of t, based on w
+    int i = getSmallest(fabs(w[0]), fabs(w[1]), fabs(w[2]));
+
+    if (i == 0) {
+        t[i] = 1;
+        t[1] = w[1];
+        t[2] = w[2];
+    }
+    else if (i == 1) {
+        t[0] = w[0];
+        t[i] = 1;
+        t[2] = w[2];
+    }
+    else if (i == 2) {
+        t[0] = w[0];
+        t[1] = w[1];
+        t[i] = 1;
+    }
+    // printf("x = %g, y = %g, z = %g\n", t[0], t[1], t[2]);
 
     // Compute u = t x w
+    GLfloat tw[3];
+    tw[0] = (t[1] * w[2]) - (t[2] * w[1]);
+    tw[1] = (t[2] * w[0]) - (t[0] * w[2]);
+    tw[2] = (t[0] * w[1]) - (t[1] * w[0]);
+
+    length = sqrt((tw[0] * tw[0]) + (tw[1] * tw[1]) + (tw[2] * tw[2]));
+
+    u[0] = tw[0] / length;
+    u[1] = tw[1] / length;
+    u[2] = tw[2] / length;
+
+    // printf("x = %g, y = %g, z = %g, length %g\n", tw[0], tw[1], tw[2], length);
+    // printf("x = %g, y = %g, z = %g\n", u[0], u[1], u[2]);
 
     // Normalize u
+    length = sqrt((u[0] * u[0]) + (u[1] * u[1]) + (u[2] * u[2]));
+
+    u[0] = u[0] / length;
+    u[1] = u[1] / length;
+    u[2] = u[2] / length;
+
+    printf("ux = %g, uy = %g, uz = %g, length = %g\n", u[0], u[1], u[2], length);
 
     // Compute v = w x u
+    v[0] = (w[1] * u[2]) - (w[2] * u[1]);
+    v[1] = (w[2] * u[0]) - (w[0] * u[2]);
+    v[2] = (w[0] * u[1]) - (u[1] * u[0]);
+
+    //ONLY NEED TO CHECK ORTHORMALITY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    printf("vx = %g, vy = %g, vz = %g\n", v[0], v[1], v[2]);
 
     // At this point u, v and w should form an orthonormal basis.
     // If your routine does not seem to work correctly it might be
@@ -117,3 +171,6 @@ void myRotatef(GLfloat angle, GLfloat x, GLfloat y, GLfloat z)
     glMultMatrixf(C);
 }
 
+int getSmallest(GLfloat a, GLfloat b, GLfloat c) {
+    return (a < b ? (a < c ? 0 : 2) : (b < c ? 1 : 2));
+}
