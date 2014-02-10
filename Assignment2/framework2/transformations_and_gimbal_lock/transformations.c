@@ -138,19 +138,19 @@ void myRotatef(GLfloat angle, GLfloat x, GLfloat y, GLfloat z)
     GLfloat ortho = v[0] * u[0] + v[1] * u[1] + v[2] * u[2];
 
     if (ortho != 0.0) {
-        printf("v and u are not orthogonal! (v.u = %g)\n", ortho);
+        printf("v and u are not exactly orthogonal! (v.u = %g)\n", ortho);
     }
 
     ortho = v[0] * w[0] + v[1] * w[1] + v[2] * w[2];
 
     if (ortho != 0.0) {
-        printf("v and w are not orthogonal! (v.w = %g)\n", ortho);
+        printf("v and w are not exactly orthogonal! (v.w = %g)\n", ortho);
     }
 
     ortho = w[0] * u[0] + w[1] * u[1] + w[2] * u[2];
 
     if (ortho != 0.0) {
-        printf("w and u are not orthogonal! (w.u = %g)\n", ortho);
+        printf("w and u are not exactly orthogonal! (w.u = %g)\n", ortho);
     }
 
 
