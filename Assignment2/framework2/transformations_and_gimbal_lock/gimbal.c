@@ -58,6 +58,7 @@ void ReSizeGLScene(int Width, int Height) {
 }
 
 void drawRotatedTeapot(float rotx, float roty, float rotz) {
+    // Q1: Rotating is done first in the x axis, then y, then z
     glRotatef(rotx, 1.0, 0.0, 0.0);
     glRotatef(roty, 0.0, 1.0, 0.0);
     glRotatef(rotz, 0.0, 0.0, 1.0);
