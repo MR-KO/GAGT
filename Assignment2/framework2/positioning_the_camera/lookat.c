@@ -7,7 +7,7 @@
  * Student name .... Timo Dobber & Kevin Ouwehand
  * Student email ... tdob3000@gmail.com & c0nd3mn3d@hotmail.com
  * Collegekaart .... 10386726 & 10420908
- * Date ............ 07-02-2014
+ * Date ............ 11-02-2014
  * Comments ........ NULL
  *
  *
@@ -27,10 +27,6 @@
 #endif
 
 void normalize3f(GLfloat *v) {
-	if (v == NULL) {
-		return;
-	}
-
 	GLfloat length = sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
 
 	v[0] = v[0] / length;
@@ -39,15 +35,24 @@ void normalize3f(GLfloat *v) {
 }
 
 void normalize3d(GLdouble *v) {
-	if (v == NULL) {
-		return;
-	}
-
 	GLdouble length = sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
 
 	v[0] = v[0] / length;
 	v[1] = v[1] / length;
 	v[2] = v[2] / length;
+}
+
+
+void cross_product3f(GLfloat *x, GLfloat *y, GLfloat *result) {
+    result[0] = (x[1] * y[2]) - (x[2] * y[1]);
+    result[1] = (x[2] * y[0]) - (x[0] * y[2]);
+    result[2] = (x[0] * y[1]) - (x[1] * y[0]);
+}
+
+void cross_product3d(GLdouble *x, GLdouble *y, GLdouble *result) {
+    result[0] = (x[1] * y[2]) - (x[2] * y[1]);
+    result[1] = (x[2] * y[0]) - (x[0] * y[2]);
+    result[2] = (x[0] * y[1]) - (x[1] * y[0]);
 }
 
 
@@ -72,20 +77,20 @@ void myLookAt(GLdouble eyeX, GLdouble eyeY, GLdouble eyeZ,
 	// Then the cy vector (points in the direction of the camera cy vector)
 	// Get a real orthogonal vector cx first, which is orthogonal to up and cz
 	GLdouble cx[3];
+	GLdouble up[3];
 
-	cx[0] = upY * cz[2] - upZ * cz[1];
-	cx[1] = upZ * cz[0] - upX * cz[2];
-	cx[2] = upX * cz[1] - upY * cz[0];
+	up[0] = upX;
+	up[1] = upY;
+	up[2] = upZ;
+
+	cross_product3d(up, cz, cx);
 
 	// Normalize cx
 	normalize3d(cx);
 
 	// Get cy, which is orthogonal to cx and cz
 	GLdouble cy[3];
-
-	cy[0] = cz[1] * cx[2] - cz[2] * cx[1];
-	cy[1] = cz[2] * cx[0] - cz[0] * cx[2];
-	cy[2] = cz[0] * cx[1] - cz[1] * cx[0];
+	cross_product3d(cz, cx, cy);
 
 	// Normalize cy
 	normalize3d(cy);

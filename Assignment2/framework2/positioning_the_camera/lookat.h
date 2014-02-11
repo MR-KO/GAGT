@@ -16,5 +16,7 @@ void myLookAt(GLdouble eyeX, GLdouble eyeY, GLdouble eyeZ,
 
 void normalize3f(GLfloat *v);
 void normalize3d(GLdouble *v);
+void cross_product3f(GLfloat *x, GLfloat *y, GLfloat *result);
+void cross_product3d(GLdouble *x, GLdouble *y, GLdouble *result);
 
 #endif /* IBS_LOOKAT_H */
