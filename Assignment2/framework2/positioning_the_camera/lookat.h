@@ -2,7 +2,7 @@
  *
  * Filename ........ lookat.h
  * Description ..... Contains the re-programmed lookAt function
- * Created by ...... Jurgen Sturm 
+ * Created by ...... Jurgen Sturm
  */
 
 
@@ -14,5 +14,7 @@ void myLookAt(GLdouble eyeX, GLdouble eyeY, GLdouble eyeZ,
               GLdouble centerX, GLdouble centerY, GLdouble centerZ,
               GLdouble upX, GLdouble upY, GLdouble upZ);
 
+void normalize3f(GLfloat *v);
+void normalize3d(GLdouble *v);
 
 #endif /* IBS_LOOKAT_H */
