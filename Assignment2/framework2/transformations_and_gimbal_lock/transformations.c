@@ -96,9 +96,11 @@ void myRotatef(GLfloat angle, GLfloat x, GLfloat y, GLfloat z)
 
     // Compute u = t x w  /  || t x w ||
     GLfloat tw[3];
-    tw[0] = (t[1] * w[2]) - (t[2] * w[1]);
-    tw[1] = (t[2] * w[0]) - (t[0] * w[2]);
-    tw[2] = (t[0] * w[1]) - (t[1] * w[0]);
+    // tw[0] = (t[1] * w[2]) - (t[2] * w[1]);
+    // tw[1] = (t[2] * w[0]) - (t[0] * w[2]);
+    // tw[2] = (t[0] * w[1]) - (t[1] * w[0]);
+
+    cross_product(t, w, tw);
 
     length = sqrt(tw[0] * tw[0] + tw[1] * tw[1] + tw[2] * tw[2]);
 
@@ -119,9 +121,7 @@ void myRotatef(GLfloat angle, GLfloat x, GLfloat y, GLfloat z)
     // printf("ux = %g, uy = %g, uz = %g, length = %g\n", u[0], u[1], u[2], length);
 
     // Compute v = w x u
-    v[0] = (w[1] * u[2]) - (w[2] * u[1]);
-    v[1] = (w[2] * u[0]) - (w[0] * u[2]);
-    v[2] = (w[0] * u[1]) - (u[1] * u[0]);
+    cross_product(w, u, v);
 
     // Normalize v
     length = sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
@@ -204,4 +204,10 @@ void myRotatef(GLfloat angle, GLfloat x, GLfloat y, GLfloat z)
 
 int getSmallest(GLfloat a, GLfloat b, GLfloat c) {
     return (a < b ? (a < c ? 0 : 2) : (b < c ? 1 : 2));
+}
+
+GLfloat *cross_product(GLfloat *x, GLfloat *y, GLfloat *z) {
+    z[0] = (x[1] * y[2]) - (x[2] * y[1]);
+    z[1] = (x[2] * y[0]) - (x[0] * y[2]);
+    z[2] = (x[0] * y[1]) - (x[1] * y[0]);
 }
