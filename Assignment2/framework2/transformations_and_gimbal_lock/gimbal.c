@@ -22,9 +22,9 @@
 #include "transformations.h"
 #include <math.h>
 
-#define ROTATE_X_AND_Z	0
-#define ROTATE_ONLY_X	1
-#define ROTATE_ONLY_Z	2
+#define ROTATE_X_AND_Z  0
+#define ROTATE_ONLY_X   1
+#define ROTATE_ONLY_Z   2
 
 int     window;
 float   x_rotation=0.0, z_rotation=0.0;
@@ -32,8 +32,7 @@ int     prev_mouse_x, prev_mouse_y;
 int     do_mouse_transform=0;
 int     rotation_mode=ROTATE_X_AND_Z;
 
-void InitGL(void)
-{
+void InitGL(void) {
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClearDepth(1.0);
     glDepthFunc(GL_LESS);
@@ -41,8 +40,7 @@ void InitGL(void)
     glShadeModel(GL_SMOOTH);
 }
 
-void ReSizeGLScene(int Width, int Height)
-{
+void ReSizeGLScene(int Width, int Height) {
     float hfov=90.0, vfov;
 
     if (Height == 0)
@@ -59,8 +57,7 @@ void ReSizeGLScene(int Width, int Height)
     glMatrixMode(GL_MODELVIEW);
 }
 
-void drawRotatedTeapot(float rotx, float roty, float rotz)
-{
+void drawRotatedTeapot(float rotx, float roty, float rotz) {
     glRotatef(rotx, 1.0, 0.0, 0.0);
     glRotatef(roty, 0.0, 1.0, 0.0);
     glRotatef(rotz, 0.0, 0.0, 1.0);
@@ -95,19 +92,35 @@ void drawRotatedTeapot(float rotx, float roty, float rotz)
     glEnd();
 }
 
-void drawTeapots(void)
-{
+void drawTeapots(void) {
     /* This function is called from DrawGLScene() below */
 
+    GLfloat T[16] =
+    {
+        1.0, 0.0, 0.0, 0.0,
+        0.0, 1.0, 0.0, 0.0,
+        0.0, 0.0, 1.0, 0.0,
+        5.0, 0, 0, 1.0
+    };
+
     glPushMatrix();
-
     drawRotatedTeapot(x_rotation, 0.0, z_rotation);
+    glPopMatrix();
 
+    glMultMatrixf(T);
+
+    glPushMatrix();
+    drawRotatedTeapot(x_rotation, 45.0, z_rotation);
+    glPopMatrix();
+
+    glMultMatrixf(T);
+
+    glPushMatrix();
+    drawRotatedTeapot(x_rotation, 90.0, z_rotation);
     glPopMatrix();
 }
 
-void DrawGLScene(void)
-{
+void DrawGLScene(void) {
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
     glLoadIdentity ();
@@ -118,8 +131,7 @@ void DrawGLScene(void)
     glutSwapBuffers();
 }
 
-void keyPressed(unsigned char key, int x, int y)
-{
+void keyPressed(unsigned char key, int x, int y) {
     switch(key) {
     case 27:
       glutDestroyWindow(window);
@@ -144,8 +156,7 @@ void keyPressed(unsigned char key, int x, int y)
     DrawGLScene();
 }
 
-void mouseClick(int button, int state, int x, int y)
-{
+void mouseClick(int button, int state, int x, int y) {
     if (button == GLUT_LEFT_BUTTON)
     {
         if (state == GLUT_DOWN)
@@ -162,8 +173,7 @@ void mouseClick(int button, int state, int x, int y)
     }
 }
 
-void mouseMove(int x, int y)
-{
+void mouseMove(int x, int y) {
     int dx, dy;
 
     if (do_mouse_transform)
@@ -181,8 +191,7 @@ void mouseMove(int x, int y)
     }
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
     glutInit(&argc, argv);
 
     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_ALPHA | GLUT_DEPTH);
