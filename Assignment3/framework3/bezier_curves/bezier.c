@@ -52,13 +52,17 @@ void evaluate_bezier_curve(float *x, float *y, control_point p[], int num_points
 
 	// Compute the x and y values based on the bezier curve
 	for (int k = 0; k < num_points; k++) {
-		double binom = binomial(num_points, k);
-		double pow1 = pow(1.0F - u, num_points - k);
+		double binom = binomial(num_points - 1, k);
+		double pow1 = pow(1.0F - u, num_points - 1 - k);
 		double pow2 = pow(u, k);
 		double temp = binom * pow1 * pow2;
 
 		*x = *x + temp * p[k].x;
 		*y = *y + temp * p[k].y;
+
+		// printf("\tk = %2d, binom = %8g, pow1 = %8g, pow2 = %8g, temp = %8g\n",
+		// 	k, binom, pow1, pow2, temp);
+		// printf("\t\tx = %8g, y = %8g\n", *x, *y);
 	}
 }
 
@@ -84,25 +88,26 @@ void evaluate_bezier_curve(float *x, float *y, control_point p[], int num_points
  */
 
 void draw_bezier_curve(int num_segments, control_point p[], int num_points) {
-	// todo
+	float ustep = 1.0 / num_segments;
 	float x = 0.0;
 	float y = 0.0;
 
-	double dstep = 1.0 / num_segments;
+	// printf("num_points = %2d, num_segments = %2d, ustep = %g\n",
+		// num_points, num_segments, ustep);
 
 	for (int i = 0; i < num_points; i++) {
-		// printf("Control point %2d: (%g, %g)\n", i, p[i].x, p[i].y);
+		// printf("Control point %2d: (%8g, %8g)\n", i, p[i].x, p[i].y);
 	}
 
-	printf("num_segments = %3d, dstep = %g\n", num_segments, dstep);
-
 	glBegin(GL_LINE_STRIP);
+	// glVertex2f(p[0].x, p[0].y);
 
-	for (int i = 0; i < num_segments; i++) {
-		evaluate_bezier_curve(&x, &y, p, num_points, i * dstep);
+	for (int i = 0; i <= num_segments; i++) {
+		evaluate_bezier_curve(&x, &y, p, num_points, i * ustep);
 		glVertex2f(x, y);
 	}
 
+	// glVertex2f(p[num_points - 1].x, p[num_points - 1].y);
 	glEnd();
 }
 
