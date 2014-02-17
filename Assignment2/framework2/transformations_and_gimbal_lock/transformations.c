@@ -138,6 +138,7 @@ void myRotatef(GLfloat angle, GLfloat x, GLfloat y, GLfloat z)
     glMultMatrixf(C);
 }
 
+
 int getSmallest(GLfloat a, GLfloat b, GLfloat c) {
     return (a < b ? (a < c ? 0 : 2) : (b < c ? 1 : 2));
 }

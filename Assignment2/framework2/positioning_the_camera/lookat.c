@@ -61,6 +61,8 @@ void myLookAt(GLdouble eyeX, GLdouble eyeY, GLdouble eyeZ,
               GLdouble centerX, GLdouble centerY, GLdouble centerZ,
               GLdouble upX, GLdouble upY, GLdouble upZ) {
 
+
+
 	// Change the coordinate system to camera coordinates.
 	// For that, we need the three vectors that represent the camera coordinates
 	// in world coordinates
