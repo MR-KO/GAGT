@@ -50,18 +50,15 @@ void evaluate_bezier_curve(float *x, float *y, control_point p[], int num_points
 	*x = 0.0;
 	*y = 0.0;
 
-	printf("p[0].x = %g\n", p[0].x);
-	printf("p[0].y = %g\n", p[0].y);
-
 	// Compute the x and y values based on the bezier curve
 	for (int k = 0; k < num_points; k++) {
-		double binomial = binomial(num_points, k);
-		double pow1 = pow(1 - u, num_points - k);
+		double binom = binomial(num_points, k);
+		double pow1 = pow(1.0F - u, num_points - k);
 		double pow2 = pow(u, k);
-		double temp = binomial * pow1 * pow2;
+		double temp = binom * pow1 * pow2;
 
-		*x += temp * p[0].x;
-		*y += temp * p[0].y;
+		*x = *x + temp * p[k].x;
+		*y = *y + temp * p[k].y;
 	}
 }
 
@@ -88,6 +85,25 @@ void evaluate_bezier_curve(float *x, float *y, control_point p[], int num_points
 
 void draw_bezier_curve(int num_segments, control_point p[], int num_points) {
 	// todo
+	float x = 0.0;
+	float y = 0.0;
+
+	double dstep = 1.0 / num_segments;
+
+	for (int i = 0; i < num_points; i++) {
+		// printf("Control point %2d: (%g, %g)\n", i, p[i].x, p[i].y);
+	}
+
+	printf("num_segments = %3d, dstep = %g\n", num_segments, dstep);
+
+	glBegin(GL_LINE_STRIP);
+
+	for (int i = 0; i < num_segments; i++) {
+		evaluate_bezier_curve(&x, &y, p, num_points, i * dstep);
+		glVertex2f(x, y);
+	}
+
+	glEnd();
 }
 
 /* Find the intersection of a cubic Bezier curve with the line X=x.
