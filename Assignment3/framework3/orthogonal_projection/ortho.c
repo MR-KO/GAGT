@@ -26,11 +26,21 @@
 #define M_PI           3.14159265358979323846  /* pi */
 #endif
 
-void myOrtho(GLdouble left,
-             GLdouble right,
-             GLdouble bottom,
-             GLdouble top,
-             GLdouble near,
-             GLdouble far) {
+void myOrtho(GLdouble left, GLdouble right, GLdouble bottom, GLdouble top,
+             GLdouble near, GLdouble far) {
 
+	GLdouble T[16] =
+		{1, 0, 0, 0,
+		 0, 1, 0, 0,
+		 0, 0, 1, 0,
+		 -((left + right) / 2), -((bottom + top) / 2), -((near + far) / 2), 1};
+
+	GLdouble S[16] = 
+		{(2 / (right - left)), 0, 0, 0,
+		 0, (2 / (top - bottom)), 0, 0,
+		 0, 0, (2 / (near - far)), 0,
+		 0, 0, 0, 1};
+
+	glMultMatrixd(S);
+	glMultMatrixd(T);
 }
