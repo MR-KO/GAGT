@@ -8,7 +8,7 @@ BULLET=./bullet64
 WARNING_FLAGS=-Wall -Wextra -Werror-implicit-function-declaration -Wshadow -Wstrict-prototypes -pedantic
 CFLAGS=-g -O2 -std=c99 $(WARNING_FLAGS) -fno-strict-aliasing
 CXXFLAGS=-g -O2 -Wall -Wextra -I${BULLET}/include
-LDFLAGS=-g -L${BULLET}/lib -lGL -lglut -lGLU
+LDFLAGS=-g -L${BULLET}/lib -lGL -lglut -lGLU -lm
 LIBS=-lBulletDynamics -lBulletCollision -lLinearMath
 
 .c.o:
