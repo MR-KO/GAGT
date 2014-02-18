@@ -117,9 +117,26 @@ void draw_bezier_curve(int num_segments, control_point p[], int num_points) {
    Return 0 if no intersection exists.
 */
 
-int
-intersect_cubic_bezier_curve(float *y, control_point p[], float x)
-{
+int intersect_cubic_bezier_curve(float *y, control_point p[], float x) {
+	int num_points = 4;
+
+	/* Try to find an intersection using binary search... */
+	int intersection_found = 0;
+	float u = 0.0;
+	float du = 0.1;
+	float x_curve = 0;
+	float y_curve = 0;
+
+	while (!intersection_found) {
+		evaluate_bezier_curve(&x_curve, &y_curve, p, num_points, u);
+
+		if (x_curve == x) {
+			u += du;
+		}
+
+		break;
+	}
+
 	return 0;
 }
 
