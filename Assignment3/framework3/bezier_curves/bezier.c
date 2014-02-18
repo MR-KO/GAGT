@@ -15,8 +15,12 @@
  */
 
 #include <math.h>
-#include "bezier.h"
 #include <stdio.h>
+#include <gsl/gsl_errno.h>
+#include <gsl/gsl_math.h>
+#include <gsl/gsl_roots.h>
+
+#include "bezier.h"
 
 
 /* Returns n! , if possible. 1 is returned for n <= 0. */
@@ -119,40 +123,15 @@ void draw_bezier_curve(int num_segments, control_point p[], int num_points) {
 
 int intersect_cubic_bezier_curve(float *y, control_point p[], float x) {
 
-	float eps = 10e-3;
+	float eps = 1e-3;
 	int num_points = 4;
-	int intersection_found = 0;
-	int num_loops = 0;
-	float u = 0.0;
-	float u_previous = u;
-	float du = 0.2;
+	float u = 0.5;		// Start halfway through the curve
+	float du = 0.25;	// And increase u with the half of u = 0.25
 	float x_curve = 0;
 	float y_curve = 0;
 
-	evaluate_bezier_curve(&x_curve, &y_curve, p, num_points, 0.0F);
-
-	/*
-		If at u = 0.0, and x_curve is not within a certain distance of x,
-		no intersection can be found.
-	*/
-	if (fabs(x_curve - x) > eps) {
-		return 0;
-	}
-
-	evaluate_bezier_curve(&x_curve, &y_curve, p, num_points, 1.0F);
-
-	/*
-		If at u = 1.0, and x_curve is not within a certain distance of x,
-		no intersection can be found.
-	*/
-	if (fabs(x_curve - x) > eps) {
-		return 0;
-	}
-
-	printf("Trying to find x = %g\n", x);
-
 	/* Try to find an intersection using binary/exponential search... */
-	while (!intersection_found) {
+	for (int i = 0; i < 100; i++) {
 		evaluate_bezier_curve(&x_curve, &y_curve, p, num_points, u);
 
 		/* Check if the x value of the curve is within a small distance of the given x. */
@@ -161,24 +140,21 @@ int intersect_cubic_bezier_curve(float *y, control_point p[], float x) {
 			return 1;
 		}
 
-		/* If no intersection found, quit. */
+		/* If no intersection (at all) found, quit. */
 		if (u > 2.0F || u < -1.0F) {
+			printf("Shit\n");
 			return 0;
 		}
 
-		/* Increase or decrease du */
-		if (x_curve > x && u >= 0.0F) {
+		/* Increase or decrease u with du */
+		if (x_curve > x) {
 			u -= du;
-			du /= 2.0;
 		} else {
 			u += du;
-			du /= 2.0;
 		}
 
-		num_loops++;
-
-		printf("Loop %3d: x_curve = %8g, y_curve = %8g, u = %8g, du = %8g\n",
-			num_loops, x_curve, y_curve, u, du);
+		/* Halve du */
+		du /= 2.0F;
 	}
 
 	return 0;
