@@ -118,23 +118,67 @@ void draw_bezier_curve(int num_segments, control_point p[], int num_points) {
 */
 
 int intersect_cubic_bezier_curve(float *y, control_point p[], float x) {
-	int num_points = 4;
 
-	/* Try to find an intersection using binary search... */
+	float eps = 10e-3;
+	int num_points = 4;
 	int intersection_found = 0;
+	int num_loops = 0;
 	float u = 0.0;
-	float du = 0.1;
+	float u_previous = u;
+	float du = 0.2;
 	float x_curve = 0;
 	float y_curve = 0;
 
+	evaluate_bezier_curve(&x_curve, &y_curve, p, num_points, 0.0F);
+
+	/*
+		If at u = 0.0, and x_curve is not within a certain distance of x,
+		no intersection can be found.
+	*/
+	if (fabs(x_curve - x) > eps) {
+		return 0;
+	}
+
+	evaluate_bezier_curve(&x_curve, &y_curve, p, num_points, 1.0F);
+
+	/*
+		If at u = 1.0, and x_curve is not within a certain distance of x,
+		no intersection can be found.
+	*/
+	if (fabs(x_curve - x) > eps) {
+		return 0;
+	}
+
+	printf("Trying to find x = %g\n", x);
+
+	/* Try to find an intersection using binary/exponential search... */
 	while (!intersection_found) {
 		evaluate_bezier_curve(&x_curve, &y_curve, p, num_points, u);
 
-		if (x_curve == x) {
-			u += du;
+		/* Check if the x value of the curve is within a small distance of the given x. */
+		if (fabs(x_curve - x) <= eps) {
+			*y = y_curve;
+			return 1;
 		}
 
-		break;
+		/* If no intersection found, quit. */
+		if (u > 2.0F || u < -1.0F) {
+			return 0;
+		}
+
+		/* Increase or decrease du */
+		if (x_curve > x && u >= 0.0F) {
+			u -= du;
+			du /= 2.0;
+		} else {
+			u += du;
+			du /= 2.0;
+		}
+
+		num_loops++;
+
+		printf("Loop %3d: x_curve = %8g, y_curve = %8g, u = %8g, du = %8g\n",
+			num_loops, x_curve, y_curve, u, du);
 	}
 
 	return 0;
