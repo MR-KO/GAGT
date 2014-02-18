@@ -4,11 +4,11 @@
  * Date ............ 22.07.2009
  * Created by ...... Paul Melis
  *
- * Student name ....
- * Student email ...
- * Collegekaart ....
- * Date ............
- * Comments ........
+ * Student name .... Timo Dobber & Kevin Ouwehand
+ * Student email ... tdob3000@gmail.com & c0nd3mn3d@hotmail.com
+ * Collegekaart .... 10386726 & 10420908
+ * Date ............ 18-02-2014
+ * Comments ........ NULL
  *
  *
  * (always fill in these fields before submitting!!)
@@ -54,19 +54,15 @@ void evaluate_bezier_curve(float *x, float *y, control_point p[], int num_points
 	*x = 0.0;
 	*y = 0.0;
 
-	// Compute the x and y values based on the bezier curve
+	/* Compute the x and y values based on the bezier curve */
 	for (int k = 0; k < num_points; k++) {
 		double binom = binomial(num_points - 1, k);
 		double pow1 = pow(1.0F - u, num_points - 1 - k);
 		double pow2 = pow(u, k);
-		double temp = binom * pow1 * pow2;
+		double coefficient = binom * pow1 * pow2;
 
-		*x = *x + temp * p[k].x;
-		*y = *y + temp * p[k].y;
-
-		// printf("\tk = %2d, binom = %8g, pow1 = %8g, pow2 = %8g, temp = %8g\n",
-		// 	k, binom, pow1, pow2, temp);
-		// printf("\t\tx = %8g, y = %8g\n", *x, *y);
+		*x = *x + coefficient * p[k].x;
+		*y = *y + coefficient * p[k].y;
 	}
 }
 
@@ -90,28 +86,18 @@ void evaluate_bezier_curve(float *x, float *y, control_point p[], int num_points
  * Call evaluate_bezier_curve() to compute the necessary points on
  * the curve.
  */
-
 void draw_bezier_curve(int num_segments, control_point p[], int num_points) {
 	float ustep = 1.0 / num_segments;
 	float x = 0.0;
 	float y = 0.0;
 
-	// printf("num_points = %2d, num_segments = %2d, ustep = %g\n",
-		// num_points, num_segments, ustep);
-
-	for (int i = 0; i < num_points; i++) {
-		// printf("Control point %2d: (%8g, %8g)\n", i, p[i].x, p[i].y);
-	}
-
 	glBegin(GL_LINE_STRIP);
-	// glVertex2f(p[0].x, p[0].y);
 
 	for (int i = 0; i <= num_segments; i++) {
 		evaluate_bezier_curve(&x, &y, p, num_points, i * ustep);
 		glVertex2f(x, y);
 	}
 
-	// glVertex2f(p[num_points - 1].x, p[num_points - 1].y);
 	glEnd();
 }
 
@@ -120,7 +106,6 @@ void draw_bezier_curve(int num_segments, control_point p[], int num_points) {
    value in *y.
    Return 0 if no intersection exists.
 */
-
 int intersect_cubic_bezier_curve(float *y, control_point p[], float x) {
 
 	float eps = 1e-3;
