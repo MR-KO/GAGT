@@ -49,11 +49,12 @@ double binomial(int n, int k) {
 void evaluate_bezier_curve(float *x, float *y, control_point p[], int num_points, float u) {
 	*x = 0.0;
 	*y = 0.0;
+	int degree = num_points - 1;	// Curve with degree n has n+1 control points
 
 	/* Compute the x and y values based on the bezier curve */
 	for (int k = 0; k < num_points; k++) {
-		double binom = binomial(num_points - 1, k);
-		double pow1 = pow(1.0F - u, num_points - 1 - k);
+		double binom = binomial(degree, k);
+		double pow1 = pow(1.0F - u, degree - k);
 		double pow2 = pow(u, k);
 		double coefficient = binom * pow1 * pow2;
 
