@@ -78,7 +78,7 @@ shade(intersection_point ip)
 vec3
 ray_color(int level, vec3 ray_origin, vec3 ray_direction)
 {
-    intersection_point  ip;
+    intersection_point ip;
 
     // If this ray has been reflected too many times, simply
     // return the background color.
