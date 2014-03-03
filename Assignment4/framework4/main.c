@@ -178,6 +178,10 @@ ray_trace(void)
 	right_vector = v3_normalize(v3_crossprod(forward_vector, up_vector));
 	up_vector = v3_crossprod(right_vector, forward_vector);
 
+	fprintf(stderr, "Scene camera position [%g, %g, %g], lookat [%g, %g, %g]\n",
+		scene_camera_position.x, scene_camera_position.y, scene_camera_position.z,
+		scene_camera_lookat.x, scene_camera_lookat.y, scene_camera_lookat.z);
+
 	fprintf(stderr, "Up [%g, %g, %g], forward [%g, %g, %g], right [%g, %g, %g]\n",
 		up_vector.x, up_vector.y, up_vector.z,
 		forward_vector.x, forward_vector.y, forward_vector.z,
@@ -216,8 +220,7 @@ ray_trace(void)
 	fprintf(stderr, "Image plane top left = [%g, %g, %g]\n",
 		image_plane_top_left.x, image_plane_top_left.y, image_plane_top_left.z);
 
-	// fprintf(stderr, "Image plane: width = %g, height = %g\n", image_plane_width, image_plane_height);
-	// fprintf(stderr, "Framebuffer: width = %d, height = %d\n", framebuffer_width, framebuffer_height);
+	fprintf(stderr, "Framebuffer: width = %d, height = %d\n", framebuffer_width, framebuffer_height);
 
 	vec3 image_plane_point;
 	vec3 ray_direction;
@@ -230,14 +233,20 @@ ray_trace(void)
 			// Compute the point on the image plane that is the center of that pixel
 			image_plane_point = v3_add(image_plane_top_left,
 				v3_multiply(right_vector, i * scale_width));
-			image_plane_point = v3_subtract(image_plane_point,
-				v3_negate(v3_multiply(up_vector, j * scale_height)));
+			image_plane_point = v3_add(image_plane_point,
+				v3_multiply(up_vector, j * scale_height));
 
-			// Line through the camera point and and the image plain point:
+			// fprintf(stderr, "image_plane_point [%g, %g, %g]\n",
+			// 	image_plane_point.x, image_plane_point.y, image_plane_point.z);
+
+			// Line through the camera point and the image plain point:
 			// p(t) = start + t(end - start)
 			// p(t) = scene_camera_position + t * (image_plane_point - scene_camera_position)
 			ray_direction = v3_subtract(image_plane_point, scene_camera_position);
-			ray_direction = v3_normalize(ray_direction);
+			// ray_direction = v3_normalize(ray_direction);
+
+			// fprintf(stderr, "ray_direction [%g, %g, %g]\n",
+			// 	ray_direction.x, ray_direction.y, ray_direction.z);
 
 			// Shoot a ray through that point, and determine its color
 			color = ray_color(0, image_plane_point, ray_direction);
