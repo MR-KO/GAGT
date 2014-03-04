@@ -166,7 +166,7 @@ ray_trace(void)
 	struct timeval  t0, t1;
 	float           time_taken;
 
-	// fprintf(stderr, "Ray tracing ...");
+	fprintf(stderr, "Ray tracing ...");
 	gettimeofday(&t0, NULL);
 
 	num_rays_shot = num_shadow_rays_shot = num_triangles_tested = num_bboxes_tested = 0;
@@ -178,24 +178,12 @@ ray_trace(void)
 	right_vector = v3_normalize(v3_crossprod(forward_vector, up_vector));
 	up_vector = v3_crossprod(right_vector, forward_vector);
 
-	fprintf(stderr, "Scene camera position [%g, %g, %g], lookat [%g, %g, %g]\n",
-		scene_camera_position.x, scene_camera_position.y, scene_camera_position.z,
-		scene_camera_lookat.x, scene_camera_lookat.y, scene_camera_lookat.z);
-
-	fprintf(stderr, "Up [%g, %g, %g], forward [%g, %g, %g], right [%g, %g, %g]\n",
-		up_vector.x, up_vector.y, up_vector.z,
-		forward_vector.x, forward_vector.y, forward_vector.z,
-		right_vector.x, right_vector.y, right_vector.z);
-
-
 	// Compute size of image plane from the chosen field-of-view
 	// and image aspect ratio. This is the size of the plane at distance
 	// of one unit from the camera position.
 	image_plane_height = 2.0 * tan(0.5 * VFOV / 180 * M_PI);
 	image_plane_width = image_plane_height * (1.0 * framebuffer_width / framebuffer_height);
 
-	fprintf(stderr, "Image plane width = %g, height = %g\n",
-		image_plane_width, image_plane_height);
 	// ...
 	// ...
 	// ...
@@ -204,28 +192,15 @@ ray_trace(void)
 	float scale_width = image_plane_width / (1.0 * framebuffer_width);
 	float scale_height = image_plane_height / (1.0 * framebuffer_height);
 
-	fprintf(stderr, "Image plane scale width = %g, scale height = %g\n",
-		scale_width, scale_height);
-
 	/* The center of the image plane is at the forward_vector. */
 	vec3 image_plane_center = v3_add(scene_camera_position, forward_vector);
 
-	fprintf(stderr, "Image plane center [%g, %g, %g]\n",
-		image_plane_center.x, image_plane_center.y, image_plane_center.z);
-
 	/* Determine the top left corner of the image plane. */
-	vec3 temp = v3_add(image_plane_center, v3_multiply(up_vector, scale_height / 2.0));
-	vec3 image_plane_top_left = v3_subtract(temp, v3_multiply(right_vector, scale_width / 2.0));
-
-	fprintf(stderr, "Image plane top left = [%g, %g, %g]\n",
-		image_plane_top_left.x, image_plane_top_left.y, image_plane_top_left.z);
-
-	fprintf(stderr, "Framebuffer: width = %d, height = %d\n", framebuffer_width, framebuffer_height);
+	vec3 temp = v3_add(image_plane_center, v3_multiply(up_vector, image_plane_height / 2.0));
+	vec3 image_plane_top_left = v3_subtract(temp, v3_multiply(right_vector, image_plane_width / 2.0));
 
 	vec3 image_plane_point;
 	vec3 ray_direction;
-
-	fprintf(stderr, "Ray tracing ...");
 
 	// Loop over all pixels in the framebuffer
 	for (j = 0; j < framebuffer_height; j++) {
@@ -233,23 +208,17 @@ ray_trace(void)
 			// Compute the point on the image plane that is the center of that pixel
 			image_plane_point = v3_add(image_plane_top_left,
 				v3_multiply(right_vector, i * scale_width));
-			image_plane_point = v3_add(image_plane_point,
+			image_plane_point = v3_subtract(image_plane_point,
 				v3_multiply(up_vector, j * scale_height));
-
-			// fprintf(stderr, "image_plane_point [%g, %g, %g]\n",
-			// 	image_plane_point.x, image_plane_point.y, image_plane_point.z);
 
 			// Line through the camera point and the image plain point:
 			// p(t) = start + t(end - start)
 			// p(t) = scene_camera_position + t * (image_plane_point - scene_camera_position)
 			ray_direction = v3_subtract(image_plane_point, scene_camera_position);
-			// ray_direction = v3_normalize(ray_direction);
-
-			// fprintf(stderr, "ray_direction [%g, %g, %g]\n",
-			// 	ray_direction.x, ray_direction.y, ray_direction.z);
+			ray_direction = v3_normalize(ray_direction);
 
 			// Shoot a ray through that point, and determine its color
-			color = ray_color(0, image_plane_point, ray_direction);
+			color = ray_color(0, scene_camera_position, ray_direction);
 
 			// Output pixel color
 			put_pixel(i, j, color.x, color.y, color.z);
