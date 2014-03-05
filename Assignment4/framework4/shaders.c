@@ -30,25 +30,39 @@
 vec3
 shade_constant(intersection_point ip)
 {
-    return v3_create(1, 0, 0);
+	return v3_create(1, 0, 0);
 }
 
 vec3
-shade_matte(intersection_point ip)
-{
-    return v3_create(1, 0, 0);
+shade_matte(intersection_point ip) {
+	vec3 color = v3_create(scene_ambient_light, scene_ambient_light, scene_ambient_light);
+	vec3 light;
+
+	for (int i = 0; i < scene_num_lights; i++) {
+		// Calculate where the light came from
+		light = v3_subtract(scene_lights[i].position, ip.p);
+		light = v3_normalize(light);
+
+		// Calculate the dot product
+		float dp = v3_dotprod(ip.n, light);
+
+		color = v3_add(color, v3_multiply(v3_create(scene_lights[i].intensity,
+			scene_lights[i].intensity, scene_lights[i].intensity), fmax(0, dp)));
+	}
+
+	return color;
 }
 
 vec3
 shade_blinn_phong(intersection_point ip)
 {
-    return v3_create(1, 0, 0);
+	return v3_create(1, 0, 0);
 }
 
 vec3
 shade_reflection(intersection_point ip)
 {
-    return v3_create(1, 0, 0);
+	return v3_create(1, 0, 0);
 }
 
 // Returns the shaded color for the given point to shade.
@@ -58,16 +72,16 @@ shade(intersection_point ip)
 {
   switch (ip.material)
   {
-    case 0:
-      return shade_constant(ip);
-    case 1:
-      return shade_matte(ip);
-    case 2:
-      return shade_blinn_phong(ip);
-    case 3:
-      return shade_reflection(ip);
-    default:
-      return shade_constant(ip);
+	case 0:
+	  return shade_constant(ip);
+	case 1:
+	  return shade_matte(ip);
+	case 2:
+	  return shade_blinn_phong(ip);
+	case 3:
+	  return shade_reflection(ip);
+	default:
+	  return shade_constant(ip);
 
   }
 }
@@ -78,21 +92,21 @@ shade(intersection_point ip)
 vec3
 ray_color(int level, vec3 ray_origin, vec3 ray_direction)
 {
-    intersection_point ip;
+	intersection_point ip;
 
-    // If this ray has been reflected too many times, simply
-    // return the background color.
-    if (level >= 3)
-        return scene_background_color;
+	// If this ray has been reflected too many times, simply
+	// return the background color.
+	if (level >= 3)
+		return scene_background_color;
 
-    // Check if the ray intersects anything in the scene
-    if (find_first_intersection(&ip, ray_origin, ray_direction))
-    {
-        // Shade the found intersection point
-        ip.ray_level = level;
-        return shade(ip);
-    }
+	// Check if the ray intersects anything in the scene
+	if (find_first_intersection(&ip, ray_origin, ray_direction))
+	{
+		// Shade the found intersection point
+		ip.ray_level = level;
+		return shade(ip);
+	}
 
-    // Nothing was hit, return background color
-    return scene_background_color;
+	// Nothing was hit, return background color
+	return scene_background_color;
 }
