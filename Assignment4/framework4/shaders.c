@@ -35,19 +35,27 @@ shade_constant(intersection_point ip)
 
 vec3
 shade_matte(intersection_point ip) {
+	// There is always ambient light
 	vec3 color = v3_create(scene_ambient_light, scene_ambient_light, scene_ambient_light);
 	vec3 light;
+	int shadow = 0;
 
+	// The total color is the sum of all scene lights interacting with the object
 	for (int i = 0; i < scene_num_lights; i++) {
 		// Calculate where the light came from
-		light = v3_subtract(scene_lights[i].position, ip.p);
-		light = v3_normalize(light);
+		light = v3_normalize(v3_subtract(scene_lights[i].position, ip.p));
 
-		// Calculate the dot product
+		// Calculate the dot product, which specifies the significance of the light
 		float dp = v3_dotprod(ip.n, light);
 
-		color = v3_add(color, v3_multiply(v3_create(scene_lights[i].intensity,
-			scene_lights[i].intensity, scene_lights[i].intensity), fmax(0, dp)));
+		// Check for shadow rays, and use a small offset to avoid speckles
+		shadow = shadow_check(v3_add(ip.p, v3_create(0.001, 0.001, 0.001)), light);
+
+		if (!shadow) {
+			// Add the intensity multiplied by fmax(0, dp) to the color if its not a shadow ray
+			color = v3_add(color, v3_multiply(v3_create(scene_lights[i].intensity,
+				scene_lights[i].intensity, scene_lights[i].intensity), fmax(0, dp)));
+		}
 	}
 
 	return color;
@@ -56,7 +64,48 @@ shade_matte(intersection_point ip) {
 vec3
 shade_blinn_phong(intersection_point ip)
 {
-	return v3_create(1, 0, 0);
+	// Define constants
+	float kd = 0.8;
+	float ks = 0.5;
+	float alpha = 50;
+	vec3 cd = v3_create(1, 0, 0);
+	vec3 cs = v3_create(1, 1, 1);
+
+	// Use a small offset for the shadow ray's origin, to avoid speckles
+	vec3 offset = v3_create(0.001, 0.001, 0.001);
+	vec3 shadow_origin = v3_add(ip.p, offset);
+
+	vec3 h;
+	vec3 light;
+	vec3 intensity;
+	float light_sum_diffuse = 0;
+	float light_sum_specular = 0;
+	float dp;
+
+	// The total color is the sum of all scene lights interacting with the object
+	for (int i = 0; i < scene_num_lights; i++) {
+		// Calculate where the light came from
+		light = v3_normalize(v3_subtract(scene_lights[i].position, ip.p));
+
+		// Calculate the halfway vector
+		h = v3_normalize(v3_add(scene_camera_position, light));
+
+		// Only add the light to the colors object if it is no shadow ray
+		if (!shadow_check(shadow_origin, light)) {
+			// The sum of diffuse light = sum(Ii * max(0, n . li))
+			light_sum_diffuse += scene_lights[i].intensity * fmax(0, v3_dotprod(ip.n, light));
+
+			// The sum of specular light = sum(Ii * (n . h)^alpha)
+			light_sum_specular += scene_lights[i].intensity * pow(v3_dotprod(ip.n, h), alpha);
+		}
+	}
+
+	// The color is defined as the following:
+	// cf = cd * (Ia + kd * light_sum_diffuse +
+	// 		cs * ks * light_sum_specular
+	vec3 color = v3_add(v3_multiply(cd, scene_ambient_light + kd * light_sum_diffuse),
+		v3_multiply(cs, ks * light_sum_specular));
+	return color;
 }
 
 vec3
