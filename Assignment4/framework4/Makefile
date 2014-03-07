@@ -8,8 +8,8 @@ LDFLAGS=-g -lGL -lglut -lGLU -lm
 	$(CC) -c $(CFLAGS) $<
 
 all: main
-main: bbox.o bvh.o intersection.o main.o perlin.o plymodel.o quat.o rply.o scene.o shaders.o
-	$(CC) -o main bbox.o bvh.o intersection.o main.o perlin.o plymodel.o quat.o rply.o scene.o shaders.o $(LDFLAGS)
+main: bbox.o bvh.o intersection.o main.o perlin.o plymodel.o quat.o rply.o scene.o shaders.o stack.o
+	$(CC) -o main bbox.o bvh.o intersection.o main.o perlin.o plymodel.o quat.o rply.o scene.o shaders.o stack.o $(LDFLAGS)
 
 clean:
 	rm -f *.o
@@ -37,3 +37,5 @@ intersection.o : types.h intersection.h
 intersection.o : bvh.h constants.h intersection.h scene.h v3math.h intersection.c
 bbox.o         : bbox.h constants.h v3math.h bbox.c
 bbox.o         : types.h bbox.h
+
+stack.o        : stack.h stack.c

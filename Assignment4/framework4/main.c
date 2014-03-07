@@ -747,5 +747,11 @@ main(int argc, char **argv)
 
 	glutMainLoop();
 
+	free(framebuffer);
+	free(scene_triangles);
+	free(scene_spheres);
+	free(scene_vertices);
+	free(scene_lights);
+
 	return 1;
 }

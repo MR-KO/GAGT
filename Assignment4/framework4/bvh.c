@@ -13,7 +13,9 @@ int use_bvh=0;
 // The root node of the BVH
 bvh_node    *bvh_root;
 
-static int  max_depth=16;
+// Make this globally accessible so that I can use it for my stack size
+int bvh_tree_max_depth = 16;
+
 static int  acceptable_leaf_size=4;
 
 static int  num_leafs, num_inner_nodes;
@@ -214,7 +216,7 @@ bvh_build_recursive(int depth, boundingbox bbox, triangle* triangles, int num_tr
     boundingbox left_bbox, right_bbox;
     bvh_node    *left_child, *right_child;
 
-    if (depth == max_depth || num_triangles <= acceptable_leaf_size)
+    if (depth == bvh_tree_max_depth || num_triangles <= acceptable_leaf_size)
     {
         // Create a leaf node
 #ifdef VERBOSE
@@ -378,8 +380,8 @@ bvh_build(void)
     estimated_num_leafs = (int)(1.0 * scene_num_triangles / acceptable_leaf_size + 0.5);
     printf("... Estimated number of leaf nodes needed = %d\n", estimated_num_leafs);
 
-    max_depth = 10 + ceil(1 + log10(estimated_num_leafs) / log10(2.0));
-    printf("... Setting max_depth to %d\n", max_depth);
+    bvh_tree_max_depth = 10 + ceil(1 + log10(estimated_num_leafs) / log10(2.0));
+    printf("... Setting max_depth to %d\n", bvh_tree_max_depth);
 
     // Build the BVH
 

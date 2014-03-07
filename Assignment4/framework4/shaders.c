@@ -28,8 +28,7 @@
 // a "silhouette" of an object.
 
 vec3
-shade_constant(intersection_point ip)
-{
+shade_constant(intersection_point ip) {
 	return v3_create(1, 0, 0);
 }
 
@@ -62,8 +61,7 @@ shade_matte(intersection_point ip) {
 }
 
 vec3
-shade_blinn_phong(intersection_point ip)
-{
+shade_blinn_phong(intersection_point ip) {
 	// Define constants
 	float kd = 0.8;
 	float ks = 0.5;
@@ -77,10 +75,8 @@ shade_blinn_phong(intersection_point ip)
 
 	vec3 h;
 	vec3 light;
-	vec3 intensity;
 	float light_sum_diffuse = 0;
 	float light_sum_specular = 0;
-	float dp;
 
 	// The total color is the sum of all scene lights interacting with the object
 	for (int i = 0; i < scene_num_lights; i++) {

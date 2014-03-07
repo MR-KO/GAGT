@@ -53,8 +53,7 @@ bbox_combine(boundingbox bbox1, boundingbox bbox2)
 // returns 0 otherwise
 int
 bbox_intersect(float* t_min, float* t_max, boundingbox bbox,
-    vec3 origin, vec3 direction, float t0, float t1)
-{
+    vec3 origin, vec3 direction, float t0, float t1) {
     // This code makes handy use of IEEE floating-point behaviour, such
     // as division by zero. See
     // 1) Shirley et.al. Section 10.9.1
@@ -67,25 +66,21 @@ bbox_intersect(float* t_min, float* t_max, boundingbox bbox,
     num_bboxes_tested++;
 
     inv = 1.0 / direction.x;
-    if (inv >= 0.0)
-    {
+
+    if (inv >= 0.0) {
         tmin = (bbox.min.x - origin.x) * inv;
         tmax = (bbox.max.x - origin.x) * inv;
-    }
-    else
-    {
+    } else {
         tmin = (bbox.max.x - origin.x) * inv;
         tmax = (bbox.min.x - origin.x) * inv;
     }
 
     inv = 1.0 / direction.y;
-    if (inv >= 0.0)
-    {
+
+    if (inv >= 0.0) {
         tymin = (bbox.min.y - origin.y) * inv;
         tymax = (bbox.max.y - origin.y) * inv;
-    }
-    else
-    {
+    } else {
         tymin = (bbox.max.y - origin.y) * inv;
         tymax = (bbox.min.y - origin.y) * inv;
     }
@@ -95,25 +90,26 @@ bbox_intersect(float* t_min, float* t_max, boundingbox bbox,
 
     if (tymin > tmin)
         tmin = tymin;
+
     if (tymax < tmax)
         tmax = tymax;
 
     inv = 1.0 / direction.z;
-    if (inv >= 0.0)
-    {
+
+    if (inv >= 0.0) {
         tzmin = (bbox.min.z - origin.z) * inv;
         tzmax = (bbox.max.z - origin.z) * inv;
-    }
-    else
-    {
+    } else {
         tzmin = (bbox.max.z - origin.z) * inv;
         tzmax = (bbox.min.z - origin.z) * inv;
     }
 
     if (tmin > tzmax || tzmin > tmax)
         return 0;
+
     if (tzmin > tmin)
         tmin = tzmin;
+
     if (tzmax < tmax)
         tmax = tzmax;
 
