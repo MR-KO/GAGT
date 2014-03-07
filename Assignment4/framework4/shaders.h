@@ -1,6 +1,9 @@
 #ifndef SHADERS_H
 #define SHADERS_H
 
+// Use a small offset for the shadow ray's origin, to avoid speckles
+#define OFFSET 0.001
+
 #include "types.h"
 
 // Determine the surface color for the first object intersected by

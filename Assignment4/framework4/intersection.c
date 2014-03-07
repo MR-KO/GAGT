@@ -171,6 +171,125 @@ ray_intersects_sphere(intersection_point* ip, sphere sph,
 	return 1;
 }
 
+static int
+traverse_bvh_node(bvh_node *node, intersection_point *ip, float *t_nearest, float *t0, float *t1,
+	vec3 ray_origin, vec3 ray_direction) {
+
+	intersection_point ip2;
+	int have_hit = 0;
+
+	if (node->is_leaf) {
+		// Check for closest intersecting triangle in the leaf node
+		int num_triangles = leaf_node_num_triangles(node);
+		triangle *triangles = leaf_node_triangles(node);
+
+		for (int i = 0; i < num_triangles; i++) {
+			if (ray_intersects_triangle(&ip2, triangles[i], ray_origin, ray_direction)) {
+				if (ip2.t < *t_nearest) {
+					*ip = ip2;
+					*t_nearest = ip2.t;
+					have_hit = 1;
+				}
+			}
+		}
+
+		return have_hit;
+	}
+
+	// Check for intersection with the node
+	float tmin = 0;
+	float tmax = 0;
+
+	if (!bbox_intersect(&tmin, &tmax, node->bbox, ray_origin, ray_direction, *t0, *t1)) {
+		// fprintf(stderr, "Murt 1\n");
+		return 0;
+	} else {
+		// Check the left and right child nodes
+		bvh_node *left = inner_node_left_child(node);
+		bvh_node *right = inner_node_right_child(node);
+
+		int found_left = 0;
+		int found_right = 0;
+		float tmin_left = 0;
+		float tmax_left = 0;
+		float tmin_right = 0;
+		float tmax_right = 0;
+
+		if (bbox_intersect(&tmin_left, &tmax_left, left->bbox, ray_origin, ray_direction, *t0, *t1)) {
+			// fprintf(stderr, "Found left intersection!\n");
+			found_left = 1;
+		}
+
+		if (bbox_intersect(&tmin_right, &tmax_right, right->bbox, ray_origin, ray_direction, *t0, *t1)) {
+			// fprintf(stderr, "Found right intersection!\n");
+			found_right = 1;
+		}
+
+		// 4 Options are possible:
+		// Only found an intersection in the left box, and not the right box
+		if (found_left && !found_right) {
+			*t0 = tmin_left;
+			*t1 = tmax_left;
+			return traverse_bvh_node(left, ip, t_nearest, t0, t1, ray_origin, ray_direction);
+		}
+
+		// Only found an intersection in the right box, and not the left box
+		if (found_right && !found_left) {
+			*t0 = tmin_right;
+			*t1 = tmax_right;
+			return traverse_bvh_node(right, ip, t_nearest, t0, t1, ray_origin, ray_direction);
+		}
+
+		// Found no intersection at all, either quit or use the backup
+		if (!found_left && !found_right) {
+			// fprintf(stderr, "MUUUURTT\n");
+			return 0;
+		}
+
+		// Found an intersection in both the left and right box, traverse the closest bbox
+		if (found_left && found_right) {
+			if (tmin_left < tmin_right) {
+				*t0 = tmin_left;
+				*t1 = tmax_left;
+
+				if (!traverse_bvh_node(left, ip, t_nearest, t0, t1, ray_origin, ray_direction)) {
+					*t0 = tmin_right;
+					*t1 = tmax_right;
+					return traverse_bvh_node(right, ip, t_nearest, t0, t1, ray_origin, ray_direction);
+				} else {
+					// if (*t_nearest > tmin_right) {
+					// 	*t0 = tmin_right;
+					// 	*t1 = tmax_right;
+					// 	return traverse_bvh_node(right, ip, t_nearest, t0, t1, ray_origin, ray_direction);
+					// }
+
+					return 1;
+				}
+			} else {
+				*t0 = tmin_right;
+				*t1 = tmax_right;
+
+				if (!traverse_bvh_node(right, ip, t_nearest, t0, t1, ray_origin, ray_direction)) {
+					*t0 = tmin_left;
+					*t1 = tmax_left;
+					return traverse_bvh_node(left, ip, t_nearest, t0, t1, ray_origin, ray_direction);
+				} else {
+					// if (*t_nearest > tmin_left) {
+					// 	*t0 = tmin_left;
+					// 	*t1 = tmax_left;
+					// 	return traverse_bvh_node(left, ip, t_nearest, t0, t1, ray_origin, ray_direction);
+					// }
+
+					return 1;
+				}
+			}
+		}
+	}
+
+	fprintf(stderr, "Derp\n");
+	return 0;
+}
+
 // Checks for an intersection of the given ray with the triangles
 // stored in the BVH.
 //
@@ -184,166 +303,11 @@ static int
 find_first_intersected_bvh_triangle(intersection_point* ip,
 	vec3 ray_origin, vec3 ray_direction) {
 
-	float tmin;
-	float tmax;
-
 	float t0 = 0;
 	float t1 = C_INFINITY;
-	float tmin_left = 0;
-	float tmax_left = C_INFINITY;
-	float tmin_right = 0;
-	float tmax_right = C_INFINITY;
-
-	int found_left = 0;
-	int found_right = 0;
-	int have_hit = 0;
-
-	bvh_node *current = bvh_root;
-	bvh_node *left;
-	bvh_node *right;
-
-	intersection_point ip2;
 	float t_nearest = C_INFINITY;
 
-	int num_triangles = 0;
-	triangle *triangles = NULL;
-
-	int num_loops = 0;
-
-	// Initialize a stack for the bvh traversal, of size bvh_tree_max_depth.
-	// The multiplication by 2 is just to ensure that the stack is always large enough,
-	// since resizing is currently NOT supported (or needed).
-	stack_t *stack = stack_init(bvh_tree_max_depth * 2);
-
-	// First check against spheres in the scene
-	for (int s = 0; s < scene_num_spheres; s++) {
-		// We need a second set of p and n variables, as there's the
-		// possibility that we'll overwrite a closer intersection already
-		// found
-		if (ray_intersects_sphere(&ip2, scene_spheres[s], ray_origin, ray_direction)) {
-			if (ip2.t < t_nearest) {
-				*ip = ip2;
-				t_nearest = ip2.t;
-				have_hit = 1;
-			}
-		}
-	}
-
-	// If the stack could not be initialized, we could only check for spheres...
-	if (stack == NULL) {
-		fprintf(stderr, "\nFailed to initialize the stack required for bboxes/triangles intersection!\n");
-		return have_hit;
-	}
-
-	// Any ray should intersect the bvh root node, or possibly a sphere
-	if (!bbox_intersect(&tmin, &tmax, bvh_root->bbox, ray_origin, ray_direction, t0, t1)) {
-		stack_destroy(stack);
-		return have_hit;
-	}
-
-	t_nearest = tmax;
-
-	// Else, search for the first intersecting triangle by traversing the
-	// bvh tree using bounding boxes
-	while(1) {
-		// Reset variables and adjust the t0, t1 and tmin, tmax values
-		t0 = tmin;
-		t1 = tmax;
-
-		tmin_left = t0;
-		tmax_left = t1;
-		tmin_right = t0;
-		tmax_right = t1;
-
-		found_left = 0;
-		found_right = 0;
-
-		num_loops++;
-
-		// If the current node is a leaf node, check its triangles
-		if (current->is_leaf) {
-			// Check for closest intersecting triangle in the leaf node
-			num_triangles = leaf_node_num_triangles(current);
-			triangles = leaf_node_triangles(current);
-
-			for (int i = 0; i < num_triangles; i++) {
-				if (ray_intersects_triangle(&ip2, triangles[i], ray_origin, ray_direction)) {
-					if (ip2.t < t_nearest) {
-						*ip = ip2;
-						t_nearest = ip2.t;
-						have_hit = 1;
-					}
-				}
-			}
-
-			stack_destroy(stack);
-			return have_hit;
-		}
-
-		// Else, we check the left and right child nodes
-		left = inner_node_left_child(current);
-		right = inner_node_right_child(current);
-
-		if (bbox_intersect(&tmin_left, &tmax_left, left->bbox, ray_origin, ray_direction, t0, t1)) {
-			// fprintf(stderr, "Found left intersection!\n");
-			found_left = 1;
-		}
-
-		if (bbox_intersect(&tmin_right, &tmax_right, right->bbox, ray_origin, ray_direction, t0, t1)) {
-			// fprintf(stderr, "Found right intersection!\n");
-			found_right = 1;
-		}
-
-		// 4 Options are possible:
-		// Only found an intersection in the left box, and not the right box
-		if (found_left && !found_right) {
-			current = left;
-			continue;
-		}
-
-		// Only found an intersection in the right box, and not the left box
-		if (found_right && !found_left) {
-			current = right;
-			continue;
-		}
-
-		// Found no intersection at all, either quit or use the backup
-		if (!found_left && !found_right) {
-			// fprintf(stderr, "No intersection found!\n");
-			current = stack_pop(stack);
-
-			if (current == NULL) {
-				stack_destroy(stack);
-				return have_hit;
-			}
-		}
-
-		// Found an intersection in both the left and right box, traverse the closest bbox
-		if (found_left && found_right) {
-			// Push the non-chosen node on the stack, so we could try it later
-			if (tmin_left < tmin_right) {
-				current = left;
-
-				if (stack_push(stack, right) != STACK_SUCCESS) {
-					fprintf(stderr, "Whoops, error occurred!\n");
-				} else {
-					// fprintf(stderr, "Pushed right node on the stack!\n");
-				}
-			} else {
-				current = right;
-
-				if (stack_push(stack, left) != STACK_SUCCESS) {
-					fprintf(stderr, "Whoops, error occurred!\n");
-				} else {
-					// fprintf(stderr, "Pushed left node on the stack!\n");
-				}
-			}
-		}
-	}
-
-	stack_destroy(stack);
-	fprintf(stderr, "DERP!\n");
-	return have_hit;
+	return traverse_bvh_node(bvh_root, ip, &t_nearest, &t0, &t1, ray_origin, ray_direction);
 }
 
 // Returns the nearest hit of the given ray with objects in the scene

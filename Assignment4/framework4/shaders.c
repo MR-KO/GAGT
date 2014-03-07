@@ -35,9 +35,8 @@ shade_constant(intersection_point ip) {
 vec3
 shade_matte(intersection_point ip) {
 	// There is always ambient light
-	vec3 color = v3_create(scene_ambient_light, scene_ambient_light, scene_ambient_light);
+	float color = scene_ambient_light;
 	vec3 light;
-	int shadow = 0;
 
 	// The total color is the sum of all scene lights interacting with the object
 	for (int i = 0; i < scene_num_lights; i++) {
@@ -48,16 +47,13 @@ shade_matte(intersection_point ip) {
 		float dp = v3_dotprod(ip.n, light);
 
 		// Check for shadow rays, and use a small offset to avoid speckles
-		shadow = shadow_check(v3_add(ip.p, v3_create(0.001, 0.001, 0.001)), light);
-
-		if (!shadow) {
+		if (!shadow_check(v3_add(ip.p, v3_multiply(ip.n, OFFSET)), light)) {
 			// Add the intensity multiplied by fmax(0, dp) to the color if its not a shadow ray
-			color = v3_add(color, v3_multiply(v3_create(scene_lights[i].intensity,
-				scene_lights[i].intensity, scene_lights[i].intensity), fmax(0, dp)));
+			color += scene_lights[i].intensity * fmax(0, dp);
 		}
 	}
 
-	return color;
+	return v3_create(color, color, color);
 }
 
 vec3
@@ -68,10 +64,6 @@ shade_blinn_phong(intersection_point ip) {
 	float alpha = 50;
 	vec3 cd = v3_create(1, 0, 0);
 	vec3 cs = v3_create(1, 1, 1);
-
-	// Use a small offset for the shadow ray's origin, to avoid speckles
-	vec3 offset = v3_create(0.001, 0.001, 0.001);
-	vec3 shadow_origin = v3_add(ip.p, offset);
 
 	vec3 h;
 	vec3 light;
@@ -87,7 +79,7 @@ shade_blinn_phong(intersection_point ip) {
 		h = v3_normalize(v3_add(scene_camera_position, light));
 
 		// Only add the light to the colors object if it is no shadow ray
-		if (!shadow_check(shadow_origin, light)) {
+		if (!shadow_check(v3_add(ip.p, v3_multiply(ip.n, OFFSET)), light)) {
 			// The sum of diffuse light = sum(Ii * max(0, n . li))
 			light_sum_diffuse += scene_lights[i].intensity * fmax(0, v3_dotprod(ip.n, light));
 
@@ -101,19 +93,32 @@ shade_blinn_phong(intersection_point ip) {
 	// 		cs * ks * light_sum_specular
 	vec3 color = v3_add(v3_multiply(cd, scene_ambient_light + kd * light_sum_diffuse),
 		v3_multiply(cs, ks * light_sum_specular));
+	color.x = fmin(1, color.x);
+	color.y = fmin(1, color.y);
+	color.z = fmin(1, color.z);
 	return color;
 }
 
-vec3
-shade_reflection(intersection_point ip)
-{
-	return v3_create(1, 0, 0);
+vec3 shade_reflection(intersection_point ip) {
+	// Calculate the direction of the reflection using r = 2n(i.n) - 1.
+	vec3 reflection = v3_subtract(v3_multiply(v3_multiply(ip.n, 2),
+		v3_dotprod(ip.i, ip.n)), ip.i);
+
+	ip.ray_level ++;
+
+	// Determine the color of the reflected ray.
+	vec3 color_reflection = ray_color(ip.ray_level, v3_add(ip.p, v3_multiply(ip.n, OFFSET)), reflection);
+
+	// Determine the color for the matte shade.
+	vec3 color_matte = shade_matte(ip);
+
+	// Determine the final color.
+	return v3_add(v3_multiply(color_matte, 0.75), v3_multiply(color_reflection, 0.25));;
 }
 
 // Returns the shaded color for the given point to shade.
 // Calls the relevant shading function based on the material index.
-vec3
-shade(intersection_point ip)
+vec3 shade(intersection_point ip)
 {
   switch (ip.material)
   {

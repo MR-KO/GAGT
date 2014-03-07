@@ -154,6 +154,18 @@ setup_camera(void)
 	gluLookAt (cx, cy, cz,  0.0, 0.0, 0.5,  0.0, 0.0, 1.0);
 }
 
+vec3 shoot_ray(vec3 *image_plane_point, float x_offset, float y_offset) {
+	image_plane_point->x += x_offset;
+	image_plane_point->y += y_offset;
+
+	// Compute the ray direction
+	vec3 ray_direction = v3_subtract(*image_plane_point, scene_camera_position);
+		ray_direction = v3_normalize(ray_direction);
+
+	vec3 color = ray_color(0, scene_camera_position, ray_direction);
+	return color;
+}
+
 void
 ray_trace(void)
 {
@@ -184,10 +196,6 @@ ray_trace(void)
 	image_plane_height = 2.0 * tan(0.5 * VFOV / 180 * M_PI);
 	image_plane_width = image_plane_height * (1.0 * framebuffer_width / framebuffer_height);
 
-	// ...
-	// ...
-	// ...
-
 	/* Determines the scale from framebuffer pixel to image plane. */
 	float scale_width = image_plane_width / (1.0 * framebuffer_width);
 	float scale_height = image_plane_height / (1.0 * framebuffer_height);
@@ -211,14 +219,18 @@ ray_trace(void)
 			image_plane_point = v3_subtract(image_plane_point,
 				v3_multiply(up_vector, j * scale_height));
 
-			// Line through the camera point and the image plain point:
-			// p(t) = start + t(end - start)
-			// p(t) = scene_camera_position + t * (image_plane_point - scene_camera_position)
-			ray_direction = v3_subtract(image_plane_point, scene_camera_position);
-			ray_direction = v3_normalize(ray_direction);
+			if (do_antialiasing) {
+				vec3 color1 = shoot_ray(&image_plane_point, 0.25 * scale_width, 0.25 * scale_height);
+				vec3 color2 = shoot_ray(&image_plane_point, 0.5 * scale_width, 0);
+				vec3 color3 = shoot_ray(&image_plane_point, 0, 0.5 * scale_height);
+				vec3 color4 = shoot_ray(&image_plane_point, -0.5 * scale_width, 0);
 
-			// Shoot a ray through that point, and determine its color
-			color = ray_color(0, scene_camera_position, ray_direction);
+				color = v3_add(v3_add(color1, color2), v3_add(color3, color4));
+				color = v3_multiply(color, 0.25);
+			} else {
+				// Shoot a ray through that point, and determine its color
+				color = shoot_ray(&image_plane_point, 0.5 * scale_width, 0.5 * scale_height);
+			}
 
 			// Output pixel color
 			put_pixel(i, j, color.x, color.y, color.z);
