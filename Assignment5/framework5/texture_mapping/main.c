@@ -363,9 +363,7 @@ SetupCamera(void)
 	glTranslatef(-op.x, -op.y, -op.z);
 }
 
-void
-DrawGLScene(void)
-{
+void DrawGLScene(void) {
 	float   tx, tz;
 
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
@@ -379,24 +377,19 @@ DrawGLScene(void)
 	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 
 	// Draw the different objects
-
-	if (show_polygons_as_lines)
-	{
+	if (show_polygons_as_lines) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		glDisable(GL_TEXTURE_2D);
-	}
-	else
-	{
+	} else {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-		if (show_textures)
-		{
+		if (show_textures) {
 			glEnable(GL_ALPHA_TEST);
 			glAlphaFunc(GL_GREATER, 0.5);
 			glEnable(GL_TEXTURE_2D);
-		}
-		else
+		} else {
 			glDisable(GL_TEXTURE_2D);
+		}
 	}
 
 	DrawPolylist(polylistHouse);
@@ -411,16 +404,15 @@ DrawGLScene(void)
 	// back from rand_float() below, for different runs of the program.
 	srand(95497452);
 
-	for (int t = 0; t < 12; t++)
-	{
+	for (int t = 0; t < 12; t++) {
 		glPushMatrix();
 
-		tx = 10 * (rand_float()-0.5) + object_positions[0].x;
+		tx = 10 * (rand_float() - 0.5) + object_positions[0].x;
 		tz = 3 * rand_float() + 2.0 + object_positions[0].z;
 		glTranslatef(tx, 0, tz);
 
-		glRotatef(rand_float()*360.0, 0, 1, 0);
-		glScalef(1, 1 + (rand_float()-0.5)*0.6, 1);
+		glRotatef(rand_float() * 360.0, 0, 1, 0);
+		glScalef(1, 1 + (rand_float() - 0.5) * 0.6, 1);
 
 		DrawPolylist(polylistTreeStem);
 		DrawPolylist(polylistTreeLeafs);
@@ -429,7 +421,6 @@ DrawGLScene(void)
 	}
 
 	// Draw the skydome with lighting turned off
-
 	glPushAttrib(GL_LIGHTING_BIT);
 	glDisable(GL_LIGHTING);
 	DrawPolylist(polylistSkydome);
@@ -439,9 +430,7 @@ DrawGLScene(void)
 }
 
 // Return a (pseudo-)random floating-point value in the range [0,1]
-float
-rand_float(void)
-{
+float rand_float(void) {
 	return (float)(1.0 * rand() / RAND_MAX);
 }
 
