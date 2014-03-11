@@ -3,11 +3,9 @@
 
 #include <math.h>
 
-typedef struct
-{
-    float   x, y, z;
-}
-vec3;
+typedef struct {
+    float x, y, z;
+} vec3;
 
 // Create a new 3-vector of floats
 static inline vec3

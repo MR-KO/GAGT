@@ -2,7 +2,7 @@ CC=gcc
 
 WARNING_FLAGS=-Wall -Wextra -Werror-implicit-function-declaration -Wshadow -Wstrict-prototypes -pedantic-errors
 CFLAGS=-g -O2 -std=c99 $(WARNING_FLAGS)
-LDFLAGS=-g -lGL -lGLU -lglut
+LDFLAGS=-g -lGL -lGLU -lglut -lm
 
 .c.o:
 	$(CC) -c $(CFLAGS) $<

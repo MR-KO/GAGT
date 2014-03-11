@@ -32,8 +32,7 @@ typedef struct poly
 
     // Texture coordinates per vertex
     vec3    tcoord[MAX_VERTICES];
-}
-poly;
+} poly;
 
 
 typedef struct polys
@@ -49,8 +48,7 @@ typedef struct polys
     /* array of polygons, with length "capacity" of which only the first "length"
      * items will be in use */
     poly    *items;
-}
-polys;
+} polys;
 
 
 /* Create an empty list of polys, initially reserving space for 'n' polys */
