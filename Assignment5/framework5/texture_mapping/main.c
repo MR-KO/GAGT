@@ -259,19 +259,20 @@ InitGL(void)
 
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 2);
 			glCheckError("glTexParameteri");
 
-			glTexImage2D(GL_TEXTURE_2D, 0, texture_internal_format,
-				width, height, 0, texture_format, texture_type, image_data);
+			// glTexImage2D(GL_TEXTURE_2D, 0, texture_internal_format,
+			// 	width, height, 0, texture_format, texture_type, image_data);
+			gluBuild2DMipmaps(GL_TEXTURE_2D, texture_internal_format,
+				width, height, texture_format, texture_type, image_data);
 			glCheckError("glTexImage2D");
 
 			// Free the image data, as OpenGL will have made its internal copy by now
 			free(image_data);
-		}
-		else
-		{
+		} else {
 			perror(texture_files[i].filename);
 			exit(0);
 		}
@@ -431,7 +432,7 @@ DrawGLScene(void)
 
 	glPushAttrib(GL_LIGHTING_BIT);
 	glDisable(GL_LIGHTING);
-	//DrawPolylist(polylistSkydome);
+	DrawPolylist(polylistSkydome);
 	glPopAttrib();
 
 	glutSwapBuffers();
