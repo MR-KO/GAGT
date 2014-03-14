@@ -217,14 +217,39 @@ void FillArrayWithCubes(void)
     }
 }
 
-void DrawVolumeAsIsosurface(void)
-{
+void DrawVolumeAsIsosurface(void) {
     /* This function can be left empty, we don't use immediate
     rendering of the isosurface, only rendering using arrays */
 }
 
-void FillArrayWithIsosurface(void)
-{
+void FillArrayWithIsosurface(void) {
+    unsigned int num_total_triangles_generated = 0;
+
+    triangle triangles[12];
+    unsigned int triangles_generated = 0;
+
+    /* Loop through the entire volume with a cell. */
+    for (int k = 0; k < nz; k++) {
+        for (int j = 0; j < ny; j++) {
+            for (int i = 0; i < nx; i++) {
+                cell c = get_cell(i, j, k);
+
+                /* Get the generated triangles from the cell. */
+                triangles_generated = generate_cell_triangles(triangles, c, isovalue);
+
+                /* Add the generated triangles to the list of triangles to be drawn. */
+                for (int m = 0; m < triangles_generated; m++) {
+                    AddVertexToArray(triangles[m].p[0], triangles[m].n[0]);
+                    AddVertexToArray(triangles[m].p[1], triangles[m].n[1]);
+                    AddVertexToArray(triangles[m].p[2], triangles[m].n[2]);
+                }
+
+                num_total_triangles_generated += triangles_generated;
+            }
+        }
+    }
+
+    fprintf(stderr, "Total amount of triangles generated = %d\n", num_total_triangles_generated);
 }
 
 void DrawScene(void)
