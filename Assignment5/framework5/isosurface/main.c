@@ -229,9 +229,9 @@ void FillArrayWithIsosurface(void) {
     unsigned int triangles_generated = 0;
 
     /* Loop through the entire volume with a cell. */
-    for (int k = 0; k < nz; k++) {
-        for (int j = 0; j < ny; j++) {
-            for (int i = 0; i < nx; i++) {
+    for (int k = 0; k < nz - 1; k++) {
+        for (int j = 0; j < ny - 1; j++) {
+            for (int i = 0; i < nx - 1; i++) {
                 cell c = get_cell(i, j, k);
 
                 /* Get the generated triangles from the cell. */

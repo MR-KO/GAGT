@@ -17,13 +17,29 @@
 /* Compute a linearly interpolated position where an isosurface cuts
    an edge between two vertices (p1 and p2), each with their own
    scalar value (v1 and v2) */
-
 static vec3 interpolate_points(unsigned char isovalue, vec3 p1, vec3 p2,
 unsigned char v1, unsigned char v2) {
 
 	/* Initially, simply return the midpoint between p1 and p2.
 	   So no real interpolation is done yet */
-	return v3_add(v3_multiply(p1, 0.5), v3_multiply(p2, 0.5));
+	// return v3_add(v3_multiply(p1, 0.5), v3_multiply(p2, 0.5));
+
+	/* Calculate the intersection point using lineair interpolation of the line p1 - p2. */
+	float t = (isovalue - v1) / (v2 - v1);
+
+	if (t < 0 || t > 1) {
+		fprintf(stderr, "HERP DERP!\n");
+	}
+
+	vec3 p = v3_add(p1, v3_multiply(v3_subtract(p2, p1), t));
+	return p;
+}
+
+static void calc_triangle_normal(triangle *triangles) {
+	vec3 normal = v3_normalize(v3_crossprod(v3_subtract(triangles->p[1], triangles->p[0]),
+		v3_subtract(triangles->p[2], triangles->p[0])));
+
+	triangles->n[0] = triangles->n[1] = triangles->n[2] = normal;
 }
 
 /* Using the given iso-value generate triangles for the tetrahedron
@@ -86,15 +102,7 @@ cell c, int v0, int v1, int v2, int v3) {
 			fprintf(stderr, "MURT 1!\n");
 		}
 
-		triangles->n[0] = v3_normalize(v3_subtract(v3_negate(
-			v3_add(triangles->p[1], triangles->p[2])), triangles->p[0]));
-
-		triangles->n[1] = v3_normalize(v3_subtract(v3_negate(
-			v3_add(triangles->p[0], triangles->p[2])), triangles->p[1]));
-
-		triangles->n[2] = v3_normalize(v3_subtract(v3_negate(
-			v3_add(triangles->p[0], triangles->p[1])), triangles->p[2]));
-
+		calc_triangle_normal(triangles);
 		return 1;
 	}
 
@@ -141,26 +149,8 @@ cell c, int v0, int v1, int v2, int v3) {
 			fprintf(stderr, "MURT 2!\n");
 		}
 
-		triangles->n[0] = v3_normalize(v3_subtract(v3_negate(
-			v3_add(triangles->p[1], triangles->p[2])), triangles->p[0]));
-
-		triangles->n[1] = v3_normalize(v3_subtract(v3_negate(
-			v3_add(triangles->p[0], triangles->p[2])), triangles->p[1]));
-
-		triangles->n[2] = v3_normalize(v3_subtract(v3_negate(
-			v3_add(triangles->p[0], triangles->p[1])), triangles->p[2]));
-
-		triangles++;
-		triangles->n[0] = v3_normalize(v3_subtract(v3_negate(
-			v3_add(triangles->p[1], triangles->p[2])), triangles->p[0]));
-
-		triangles->n[1] = v3_normalize(v3_subtract(v3_negate(
-			v3_add(triangles->p[0], triangles->p[2])), triangles->p[1]));
-
-		triangles->n[2] = v3_normalize(v3_subtract(v3_negate(
-			v3_add(triangles->p[0], triangles->p[1])), triangles->p[2]));
-
-		triangles--;
+		calc_triangle_normal(triangles);
+		calc_triangle_normal(triangles + 1);
 		return 2;
 	}
 
@@ -182,19 +172,19 @@ int generate_cell_triangles(triangle *triangles, cell c, unsigned char isovalue)
 
 	/* Generate all 6 possible tetrahedra in a cell. */
 	triangles_created += generate_tetrahedron_triangles(triangles,
-		isovalue, c, 0, 1, 3, 7);
+		isovalue, c, 0, 7, 3, 1);
 
 	triangles_created += generate_tetrahedron_triangles(triangles + triangles_created,
 		isovalue, c, 0, 2, 6, 7);
 
 	triangles_created += generate_tetrahedron_triangles(triangles + triangles_created,
-		isovalue, c, 0, 1, 5, 7);
+		isovalue, c, 0, 7, 5, 1);
 
 	triangles_created += generate_tetrahedron_triangles(triangles + triangles_created,
-		isovalue, c, 0, 2, 3, 7);
+		isovalue, c, 0, 2, 7, 3);
 
 	triangles_created += generate_tetrahedron_triangles(triangles + triangles_created,
-		isovalue, c, 0, 4, 5, 7);
+		isovalue, c, 0, 4, 7, 5);
 
 	triangles_created += generate_tetrahedron_triangles(triangles + triangles_created,
 		isovalue, c, 0, 4, 6, 7);
