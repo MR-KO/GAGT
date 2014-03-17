@@ -14,6 +14,17 @@
 #include <assert.h>
 #include "marching_tetrahedra.h"
 
+/* Number of triangle intersections encountered, per pattern. */
+int num_pattern_0001 = 0;
+int num_pattern_0010 = 0;
+int num_pattern_0100 = 0;
+int num_pattern_1000 = 0;
+
+/* Number of square intersections encountered, per pattern. */
+int num_pattern_0011 = 0;
+int num_pattern_0101 = 0;
+int num_pattern_0110 = 0;
+
 /* Compute a linearly interpolated position where an isosurface cuts
    an edge between two vertices (p1 and p2), each with their own
    scalar value (v1 and v2) */
@@ -25,47 +36,56 @@ static vec3 interpolate_points(unsigned char isovalue, vec3 p1, vec3 p2,
 	// return v3_add(v3_multiply(p1, 0.5), v3_multiply(p2, 0.5));
 
 	/* Calculate the intersection point using lineair interpolation of the line p1 - p2. */
-	// float t = isovalue - v1;
+	float t = isovalue - v1;
 
-	// if (v2 == v1) {
-	// 	return v3_add(v3_multiply(p1, 0.5), v3_multiply(p2, 0.5));
-	// }
-
-	// t = t / (v2 - v1);
-
-	// if (t < 0 || t > 1) {
-	// 	fprintf(stderr, "HERP DERP!\n");
-	// }
-
-	// /* Then use that t value to calculate the interpolated point between p1 and p2. */
-	// vec3 p = v3_add(p1, v3_multiply(v3_subtract(p2, p1), t));
-	// return p;
-
-	double diff_v1 = 0;
-	double diff_v2 = 0;
-	double total_diff = 0;
-	double r1, r2 = 0;
-
-	if (v2 > v1) {
-		diff_v1 = isovalue - v1;
-		diff_v2 = v2 - isovalue;
-	} else {
-		diff_v1 = v1 - isovalue;
-		diff_v2 = isovalue - v2;
+	if (v2 == v1) {
+		fprintf(stderr, "\n\n\nMUUUUUUUUUUUUUUURRRRRRRRRRRTTTTTTTTTTT\n\n\n");
+		return v3_add(v3_multiply(p1, 0.5), v3_multiply(p2, 0.5));
 	}
 
-	total_diff = diff_v1 + diff_v2;
+	t = t / (v2 - v1);
 
-	r1 = diff_v1 / total_diff;
-	r2 = diff_v2 / total_diff;
-	// printf("diff_v1 = %g, diff_v2 = %g, total_diff = %g\n", diff_v1, diff_v2, total_diff);
-	// printf("r1 = %g, r2 = %g\n", r1, r2);
+	if (t < 0 || t > 1) {
+		fprintf(stderr, "\n\n\nHERP DERP!\n\n\n");
+	}
+
+	if (t == 0) {
+		fprintf(stderr, "\n\n\nt = 0 ...\n\n\n");
+	}
+
+	if (t == 1) {
+		fprintf(stderr, "\n\n\nt = 1 ...\n\n\n");
+	}
+
+	/* Then use that t value to calculate the interpolated point between p1 and p2. */
+	vec3 p = v3_add(p1, v3_multiply(v3_subtract(p2, p1), t));
+	return p;
+
+	// double diff_v1 = 0;
+	// double diff_v2 = 0;
+	// double total_diff = 0;
+	// double r1, r2 = 0;
+
+	// if (v2 > v1) {
+	// 	diff_v1 = isovalue - v1;
+	// 	diff_v2 = v2 - isovalue;
+	// } else {
+	// 	diff_v1 = v1 - isovalue;
+	// 	diff_v2 = isovalue - v2;
+	// }
+
+	// total_diff = diff_v1 + diff_v2;
+
+	// r1 = diff_v1 / total_diff;
+	// r2 = diff_v2 / total_diff;
+	// // printf("diff_v1 = %g, diff_v2 = %g, total_diff = %g\n", diff_v1, diff_v2, total_diff);
+	// // printf("r1 = %g, r2 = %g\n", r1, r2);
 
 	// return v3_add(v3_multiply(p1, r2), v3_multiply(p2, r1));
 
 	/* Initially, simply return the midpoint between p1 and p2.
 	   So no real interpolation is done yet */
-	return v3_add(v3_multiply(p1, 0.5), v3_multiply(p2, 0.5));
+	// return v3_add(v3_multiply(p1, 0.5), v3_multiply(p2, 0.5));
 }
 
 static void calc_triangle_normal(triangle *triangles) {
@@ -104,35 +124,43 @@ cell c, int v0, int v1, int v2, int v3) {
 	if (num_greater == 3 || num_lesser == 3) {
 		/* Examine each pattern and calculate the intersecting vertices for the triangle. */
 		if (pattern == 0x0001 || pattern == 0x1110) {
-			triangles->p[0] = interpolate_points(isovalue, c.p[v1], c.p[v3],
-				c.value[v1], c.value[v3]);
-			triangles->p[1] = interpolate_points(isovalue, c.p[v0], c.p[v3],
+			triangles->p[0] = interpolate_points(isovalue, c.p[v0], c.p[v3],
 				c.value[v0], c.value[v3]);
-			triangles->p[2] = interpolate_points(isovalue, c.p[v2], c.p[v3],
-				c.value[v2], c.value[v3]);
-		} else if (pattern == 0x0010 || pattern == 0x1101) {
-			triangles->p[0] = interpolate_points(isovalue, c.p[v0], c.p[v2],
-				c.value[v0], c.value[v2]);
-			triangles->p[1] = interpolate_points(isovalue, c.p[v2], c.p[v3],
-				c.value[v2], c.value[v3]);
-			triangles->p[2] = interpolate_points(isovalue, c.p[v1], c.p[v2],
-				c.value[v1], c.value[v2]);
-		} else if (pattern == 0x0100 || pattern == 0x1011) {
-			triangles->p[0] = interpolate_points(isovalue, c.p[v1], c.p[v3],
-				c.value[v1], c.value[v3]);
-			triangles->p[1] = interpolate_points(isovalue, c.p[v1], c.p[v2],
-				c.value[v1], c.value[v2]);
-			triangles->p[2] = interpolate_points(isovalue, c.p[v0], c.p[v1],
-				c.value[v0], c.value[v1]);
-		} else if (pattern == 0x1000 || pattern == 0x0111) {
-			triangles->p[0] = interpolate_points(isovalue, c.p[v0], c.p[v2],
-				c.value[v0], c.value[v2]);
 			triangles->p[1] = interpolate_points(isovalue, c.p[v0], c.p[v1],
 				c.value[v0], c.value[v1]);
-			triangles->p[2] = interpolate_points(isovalue, c.p[v0], c.p[v3],
+			triangles->p[2] = interpolate_points(isovalue, c.p[v0], c.p[v2],
+				c.value[v0], c.value[v2]);
+
+			num_pattern_0001++;
+		} else if (pattern == 0x0010 || pattern == 0x1101) {
+			triangles->p[0] = interpolate_points(isovalue, c.p[v0], c.p[v1],
+				c.value[v0], c.value[v1]);
+			triangles->p[1] = interpolate_points(isovalue, c.p[v1], c.p[v2],
+				c.value[v1], c.value[v2]);
+			triangles->p[2] = interpolate_points(isovalue, c.p[v1], c.p[v3],
+				c.value[v1], c.value[v3]);
+
+			num_pattern_0010++;
+		} else if (pattern == 0x0100 || pattern == 0x1011) {
+			triangles->p[0] = interpolate_points(isovalue, c.p[v1], c.p[v2],
+				c.value[v1], c.value[v2]);
+			triangles->p[1] = interpolate_points(isovalue, c.p[v2], c.p[v3],
+				c.value[v2], c.value[v3]);
+			triangles->p[2] = interpolate_points(isovalue, c.p[v0], c.p[v2],
+				c.value[v0], c.value[v2]);
+
+			num_pattern_0100++;
+		} else if (pattern == 0x1000 || pattern == 0x0111) {
+			triangles->p[0] = interpolate_points(isovalue, c.p[v2], c.p[v3],
+				c.value[v2], c.value[v3]);
+			triangles->p[1] = interpolate_points(isovalue, c.p[v0], c.p[v3],
 				c.value[v0], c.value[v3]);
+			triangles->p[2] = interpolate_points(isovalue, c.p[v1], c.p[v3],
+				c.value[v1], c.value[v3]);
+
+			num_pattern_1000++;
 		} else {
-			fprintf(stderr, "MURT 1!\n");
+			fprintf(stderr, "\n\n\nMURT 1!\n\n\n");
 		}
 
 		calc_triangle_normal(triangles);
@@ -143,43 +171,49 @@ cell c, int v0, int v1, int v2, int v3) {
 	if (num_greater == 2 && num_lesser == 2) {
 		/* Examine each pattern and divide it diagonally into 2 triangles. */
 		if (pattern == 0x0011 || pattern == 0x1100) {
-			triangles->p[0] = interpolate_points(isovalue, c.p[v1], c.p[v3],
-				c.value[v1], c.value[v3]);
+			triangles->p[0] = interpolate_points(isovalue, c.p[v0], c.p[v3],
+				c.value[v0], c.value[v3]);
 			triangles->p[1] = interpolate_points(isovalue, c.p[v0], c.p[v2],
 				c.value[v0], c.value[v2]);
-			triangles->p[2] = interpolate_points(isovalue, c.p[v0], c.p[v3],
-				c.value[v0], c.value[v3]);
-
-			(triangles + 1)->p[0] = triangles->p[0];
-			(triangles + 1)->p[1] = interpolate_points(isovalue, c.p[v1], c.p[v2],
-				c.value[v1], c.value[v2]);
-			(triangles + 1)->p[2] = triangles->p[1];
-		} else if (pattern == 0x0101 || pattern == 0x1010) {
-			triangles->p[0] = interpolate_points(isovalue, c.p[v2], c.p[v3],
-				c.value[v2], c.value[v3]);
-			triangles->p[1] = interpolate_points(isovalue, c.p[v0], c.p[v1],
-				c.value[v0], c.value[v1]);
-			triangles->p[2] = interpolate_points(isovalue, c.p[v0], c.p[v3],
-				c.value[v0], c.value[v3]);
-
-			(triangles + 1)->p[0] = triangles->p[0];
-			(triangles + 1)->p[1] = interpolate_points(isovalue, c.p[v1], c.p[v2],
-				c.value[v1], c.value[v2]);
-			(triangles + 1)->p[2] = triangles->p[1];
-		} else if (pattern == 0x0110 || pattern == 0x1001) {
-			triangles->p[0] = interpolate_points(isovalue, c.p[v1], c.p[v3],
+			triangles->p[2] = interpolate_points(isovalue, c.p[v1], c.p[v3],
 				c.value[v1], c.value[v3]);
-			triangles->p[1] = interpolate_points(isovalue, c.p[v0], c.p[v1],
-				c.value[v0], c.value[v1]);
-			triangles->p[2] = interpolate_points(isovalue, c.p[v0], c.p[v2],
-				c.value[v0], c.value[v2]);
 
 			(triangles + 1)->p[0] = triangles->p[0];
-			(triangles + 1)->p[1] = interpolate_points(isovalue, c.p[v2], c.p[v3],
+			(triangles + 1)->p[1] = triangles->p[1];
+			(triangles + 1)->p[2] = interpolate_points(isovalue, c.p[v1], c.p[v2],
+				c.value[v1], c.value[v2]);
+
+			num_pattern_0011++;
+		} else if (pattern == 0x0101 || pattern == 0x1010) {
+			triangles->p[0] = interpolate_points(isovalue, c.p[v0], c.p[v3],
+				c.value[v0], c.value[v3]);
+			triangles->p[1] = interpolate_points(isovalue, c.p[v1], c.p[v2],
+				c.value[v1], c.value[v2]);
+			triangles->p[2] = interpolate_points(isovalue, c.p[v2], c.p[v3],
 				c.value[v2], c.value[v3]);
-			(triangles + 1)->p[2] = triangles->p[1];
+
+			(triangles + 1)->p[0] = triangles->p[0];
+			(triangles + 1)->p[1] = triangles->p[1];
+			(triangles + 1)->p[2] = interpolate_points(isovalue, c.p[v0], c.p[v1],
+				c.value[v0], c.value[v1]);
+
+			num_pattern_0101++;
+		} else if (pattern == 0x0110 || pattern == 0x1001) {
+			triangles->p[0] = interpolate_points(isovalue, c.p[v0], c.p[v2],
+				c.value[v0], c.value[v2]);
+			triangles->p[1] = interpolate_points(isovalue, c.p[v1], c.p[v3],
+				c.value[v1], c.value[v3]);
+			triangles->p[2] = interpolate_points(isovalue, c.p[v0], c.p[v1],
+				c.value[v0], c.value[v1]);
+
+			(triangles + 1)->p[0] = triangles->p[0];
+			(triangles + 1)->p[1] = triangles->p[1];
+			(triangles + 1)->p[2] = interpolate_points(isovalue, c.p[v2], c.p[v3],
+				c.value[v2], c.value[v3]);
+
+			num_pattern_0110++;
 		} else {
-			fprintf(stderr, "MURT 2!\n");
+			fprintf(stderr, "\n\n\nMURT 2!\n\n\n");
 		}
 
 		calc_triangle_normal(triangles);
@@ -187,7 +221,7 @@ cell c, int v0, int v1, int v2, int v3) {
 		return 2;
 	}
 
-	fprintf(stderr, "MURT 3!\n");
+	fprintf(stderr, "\n\n\nMURT 3!\n\n\n");
 	return 0;
 }
 

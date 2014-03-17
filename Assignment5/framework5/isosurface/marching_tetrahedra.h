@@ -11,4 +11,15 @@ typedef struct {
 
 int generate_cell_triangles(triangle *triangles, cell c, unsigned char isovalue);
 
+/* Number of triangle intersections encountered, per pattern. */
+extern int num_pattern_0001;
+extern int num_pattern_0010;
+extern int num_pattern_0100;
+extern int num_pattern_1000;
+
+/* Number of square intersections encountered, per pattern. */
+extern int num_pattern_0011;
+extern int num_pattern_0101;
+extern int num_pattern_0110;
+
 #endif

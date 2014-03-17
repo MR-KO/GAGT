@@ -223,8 +223,9 @@ void DrawVolumeAsIsosurface(void) {
 }
 
 void FillArrayWithIsosurface(void) {
-    unsigned int num_total_triangles_generated = 0;
+    unsigned long num_total_triangles_generated = 0;
 
+    /* Our current marching tetrahedron algorithm produces up to 12 triangles. */
     triangle triangles[12];
     unsigned int triangles_generated = 0;
 
@@ -238,7 +239,7 @@ void FillArrayWithIsosurface(void) {
                 triangles_generated = generate_cell_triangles(triangles, c, isovalue);
 
                 /* Add the generated triangles to the list of triangles to be drawn. */
-                for (int m = 0; m < triangles_generated; m++) {
+                for (unsigned int m = 0; m < triangles_generated; m++) {
                     AddVertexToArray(triangles[m].p[0], triangles[m].n[0]);
                     AddVertexToArray(triangles[m].p[1], triangles[m].n[1]);
                     AddVertexToArray(triangles[m].p[2], triangles[m].n[2]);
@@ -249,7 +250,16 @@ void FillArrayWithIsosurface(void) {
         }
     }
 
-    fprintf(stderr, "Total amount of triangles generated = %d\n", num_total_triangles_generated);
+    fprintf(stderr, "\nTotal amount of triangles generated = %lu\n", num_total_triangles_generated);
+    fprintf(stderr, "\nNumber of triangle patterns:\n");
+    fprintf(stderr, "Pattern 0001/1110 = %d\n", num_pattern_0001);
+    fprintf(stderr, "Pattern 0010/1101 = %d\n", num_pattern_0010);
+    fprintf(stderr, "Pattern 0100/1011 = %d\n", num_pattern_0100);
+    fprintf(stderr, "Pattern 1000/0111 = %d\n", num_pattern_1000);
+    fprintf(stderr, "\nNumber of square patterns:\n");
+    fprintf(stderr, "Pattern 0011/1100 = %d\n", num_pattern_0011);
+    fprintf(stderr, "Pattern 0101/1010 = %d\n", num_pattern_0101);
+    fprintf(stderr, "Pattern 0110/1001 = %d\n", num_pattern_0110);
 }
 
 void DrawScene(void)
