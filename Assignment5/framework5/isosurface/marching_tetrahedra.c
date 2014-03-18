@@ -1,9 +1,9 @@
 /* Computer Graphics, Assignment, Volume rendering with cubes/points/isosurface
  *
- * Student name ....
- * Student email ...
- * Collegekaart ....
- * Date ............
+ * Student name .... Timo Dobber & Kevin Ouwehand
+ * Student email ... tdob3000@gmail.com & c0nd3mn3d@hotmail.com
+ * Collegekaart .... 10386726 & 10420908
+ * Date ............ Tue March 18
  * Comments ........
  *
  * (always fill in these fields before submitting!!)
@@ -36,58 +36,14 @@ static vec3 interpolate_points(unsigned char isovalue, vec3 p1, vec3 p2,
 	// return v3_add(v3_multiply(p1, 0.5), v3_multiply(p2, 0.5));
 
 	/* Calculate the intersection point using lineair interpolation of the line p1 - p2. */
-	float t = isovalue - v1;
-
-	if (v2 == v1) {
-		fprintf(stderr, "\n\n\nMUUUUUUUUUUUUUUURRRRRRRRRRRTTTTTTTTTTT\n\n\n");
-		return v3_add(v3_multiply(p1, 0.5), v3_multiply(p2, 0.5));
-	}
-
-	t = t / (v2 - v1);
-
-	if (t < 0 || t > 1) {
-		fprintf(stderr, "\n\n\nHERP DERP!\n\n\n");
-	}
-
-	if (t == 0) {
-		// fprintf(stderr, "\n\n\nt = 0 ...\n\n\n");
-	}
-
-	if (t == 1) {
-		// fprintf(stderr, "\n\n\nt = 1 ...\n\n\n");
-	}
+	float t = (isovalue - v1) / (v2 - v1);
 
 	/* Then use that t value to calculate the interpolated point between p1 and p2. */
 	vec3 p = v3_add(p1, v3_multiply(v3_subtract(p2, p1), t));
 	return p;
-
-	// double diff_v1 = 0;
-	// double diff_v2 = 0;
-	// double total_diff = 0;
-	// double r1, r2 = 0;
-
-	// if (v2 > v1) {
-	// 	diff_v1 = isovalue - v1;
-	// 	diff_v2 = v2 - isovalue;
-	// } else {
-	// 	diff_v1 = v1 - isovalue;
-	// 	diff_v2 = isovalue - v2;
-	// }
-
-	// total_diff = diff_v1 + diff_v2;
-
-	// r1 = diff_v1 / total_diff;
-	// r2 = diff_v2 / total_diff;
-	// // printf("diff_v1 = %g, diff_v2 = %g, total_diff = %g\n", diff_v1, diff_v2, total_diff);
-	// // printf("r1 = %g, r2 = %g\n", r1, r2);
-
-	// return v3_add(v3_multiply(p1, r2), v3_multiply(p2, r1));
-
-	/* Initially, simply return the midpoint between p1 and p2.
-	   So no real interpolation is done yet */
-	// return v3_add(v3_multiply(p1, 0.5), v3_multiply(p2, 0.5));
 }
 
+// From: stackoverflow.com/questions/1516926
 static void calc_triangle_normal(triangle *triangles) {
 	vec3 normal = v3_normalize(v3_crossprod(v3_subtract(triangles->p[1], triangles->p[0]),
 		v3_subtract(triangles->p[2], triangles->p[0])));
@@ -159,8 +115,6 @@ cell c, int v0, int v1, int v2, int v3) {
 				c.value[v1], c.value[v3]);
 
 			num_pattern_1000++;
-		} else {
-			fprintf(stderr, "\n\n\nMURT 1!\n\n\n");
 		}
 
 		calc_triangle_normal(triangles);
@@ -212,8 +166,6 @@ cell c, int v0, int v1, int v2, int v3) {
 				c.value[v2], c.value[v3]);
 
 			num_pattern_0110++;
-		} else {
-			fprintf(stderr, "\n\n\nMURT 2!\n\n\n");
 		}
 
 		calc_triangle_normal(triangles);
@@ -221,7 +173,6 @@ cell c, int v0, int v1, int v2, int v3) {
 		return 2;
 	}
 
-	fprintf(stderr, "\n\n\nMURT 3!\n\n\n");
 	return 0;
 }
 

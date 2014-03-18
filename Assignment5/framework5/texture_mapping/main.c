@@ -4,10 +4,10 @@
  * Description ..... Creates OpenGL window and draws the scene.
  * Created by ...... Paul Melis, Robert Belleman, Jurgen Sturm
  *
- * Student name ....
- * Student email ...
- * Collegekaart ....
- * Date ............
+ * Student name .... Timo Dobber & Kevin Ouwehand
+ * Student email ... tdob3000@gmail.com & c0nd3mn3d@hotmail.com
+ * Collegekaart .... 10386726 & 10420908
+ * Date ............ Tue March 18
  * Comments ........
  *
  * (always fill in these fields before submitting!!)
@@ -263,7 +263,7 @@ InitGL(void)
 			// MAG_FILTER doesnt support GL_LINEAR_MIPMAP_LINEAR
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 2);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 4);
 			glCheckError("glTexParameteri");
 
 			// glTexImage2D(GL_TEXTURE_2D, 0, texture_internal_format,

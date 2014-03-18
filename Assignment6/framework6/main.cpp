@@ -29,13 +29,22 @@ int play = 0;
 unsigned int num_levels;
 level_t *levels;
 
-b2World* world;
-b2Body* body;
+b2World *world;
+b2Body *body;
+b2Body *ground;
+b2Body *ball;
 int current_level;
 
 float ball_radius = 0.1F;
 float finish_width = 0.05F;
 float finish_height = 0.05F;
+
+/* Support at most 4 vertices, where the last vertice more or less equals the first. */
+const int max_vertices = 4;
+int mouse_mode = 0;
+
+b2Vec2 vertices[max_vertices + 1];
+int num_vertices = 0;
 
 /*
  * Load a given world, i.e. read the world from the `levels' data structure and
@@ -66,7 +75,7 @@ void load_world(unsigned int level) {
 	b2BodyDef body_def;
 	body_def.type = b2_dynamicBody;
 	body_def.position.Set(levels[level].start.x, levels[level].start.y);
-	body = world->CreateBody(&body_def);
+	ball = body = world->CreateBody(&body_def);
 
 	b2CircleShape circle;
 	// circle.m_p.Set(3.0f, 4.0f);
@@ -244,7 +253,31 @@ void key_pressed(unsigned char key, int x, int y) {
  * Called when the user clicked (or released) a mouse buttons inside the window.
  */
 void mouse_clicked(int button, int state, int x, int y) {
+	// guard against both left and right buttons being pressed at the same time,
+	// by only responding when a mouse button is pressed while another one
+	// hasn't been pressed yet
+	if (state == GLUT_DOWN && mouse_mode == 0) {
+		if (button == GLUT_LEFT_BUTTON) {
+			mouse_mode = GLUT_LEFT_BUTTON;
 
+			/* Add the mouse click to the vertices array: determine cases... */
+
+			/* First case: attempt at creating a quad... */
+			if (num_vertices == max_vertices) {
+				/* Convert clicked mouse point to world vertex. */
+				vertices[num_vertices].x = x * (world_x / reso_x);
+				vertices[num_vertices].y = (-y - reso_y) * (world_y / reso_y);
+				/* 5 vertices have been drawn now. */
+			}
+		} else if (button == GLUT_RIGHT_BUTTON) {
+			mouse_mode = GLUT_RIGHT_BUTTON;
+
+			/* Possible TODO: Remove the point? */
+		}
+	} else if (state == GLUT_UP && button == mouse_mode) {
+		// pressed button released
+		mouse_mode = 0;
+	}
 }
 
 /*
