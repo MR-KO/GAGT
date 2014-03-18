@@ -133,9 +133,10 @@ InitializePolygonlists(void)
 
 	// A single tree object
 	polylistTreeLeafs = CreatePolylist(10);
-	createSphere(polylistTreeLeafs, 0.7, 0.7, 0.7,  0, 1.7, 0,  0, 1, 0);
-	for (i = 0; i < polylistTreeLeafs->length; i++)
-		polylistTreeLeafs->items[i].texture_id = texture_names[0];
+	// createSphere(polylistTreeLeafs, 0.7, 0.7, 0.7,  0, 1.7, 0,  0, 1, 0);
+	loadPolygonalObject(polylistTreeLeafs, "leaf.obj", texture_names, 1.0, 0.0, 1.8, 0.0);
+	//for (i = 0; i < polylistTreeLeafs->length; i++)
+	//	polylistTreeLeafs->items[i].texture_id = texture_names[0];
 
 	polylistTreeStem = CreatePolylist(10);
 	createCylinder(polylistTreeStem, 0.075, 1.8,  0, 0, 0,  0.5, 0.3, 0);
@@ -257,9 +258,10 @@ InitGL(void)
 			glBindTexture(GL_TEXTURE_2D, texture_names[i]);
 			glCheckError("glBindTexture");
 
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			// MAG_FILTER doesnt support GL_LINEAR_MIPMAP_LINEAR
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 2);
 			glCheckError("glTexParameteri");
@@ -307,8 +309,8 @@ void DrawPolylist(polys * list) {
 		// Make the correct texture active
 		glBindTexture(GL_TEXTURE_2D, p.texture_id);
 
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
 		glBegin(GL_POLYGON);
 
@@ -403,6 +405,7 @@ void DrawGLScene(void) {
 	// Re-seed the random generator, so we always get the same sequence
 	// back from rand_float() below, for different runs of the program.
 	srand(95497452);
+	int number_leafs = 6;
 
 	for (int t = 0; t < 12; t++) {
 		glPushMatrix();
@@ -415,7 +418,10 @@ void DrawGLScene(void) {
 		glScalef(1, 1 + (rand_float() - 0.5) * 0.6, 1);
 
 		DrawPolylist(polylistTreeStem);
-		DrawPolylist(polylistTreeLeafs);
+		for (int i = 0; i < number_leafs; i ++) {
+			glRotatef(rand_float() * 360.0, 0, 1, 0);
+			DrawPolylist(polylistTreeLeafs);
+		}
 
 		glPopMatrix();
 	}
