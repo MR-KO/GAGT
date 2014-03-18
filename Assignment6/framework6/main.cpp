@@ -31,6 +31,7 @@ level_t *levels;
 
 b2World* world;
 b2Body* body;
+int current_level;
 
 /*
  * Load a given world, i.e. read the world from the `levels' data structure and
@@ -48,6 +49,7 @@ void load_world(unsigned int level) {
 
     // Create a Box2D world and populate it with all bodies for this level
     // (including the ball).
+    current_level = level + 1;
     b2Vec2 gravity (0, -9.81);
     bool do_sleep = true;
 
@@ -57,13 +59,14 @@ void load_world(unsigned int level) {
     // printf("num_polygons = %i\n", levels[0].num_polygons);
     // printf("is_Dynamic = %d\n", levels[0].polygons[0].is_dynamic);
 
+    // Setup ball.
     b2BodyDef body_def;
     body_def.type = b2_dynamicBody;
-    body_def.position.Set(3.0f, 4.0f);
+    body_def.position.Set(levels[level].start.x, levels[level].start.y);
     body = world->CreateBody(&body_def);
 
     b2CircleShape circle;
-    circle.m_p.Set(3.0f, 4.0f);
+    // circle.m_p.Set(3.0f, 4.0f);
     circle.m_radius = 0.5f;
 
     b2FixtureDef fixture_def;
@@ -72,6 +75,13 @@ void load_world(unsigned int level) {
     fixture_def.friction = 0.3f;
 
     body->CreateFixture(&fixture_def);
+    b2Vec2 triangle[3];
+
+    // Setup rest of level.
+    // for (int i = 0; i < levels[level].num_polygons; i++) {
+    //     [levels[level].polygons[i].num_verts];
+    //     triangle
+    // }
 }
 
 
@@ -103,7 +113,7 @@ void draw(void)
     }
 
     b2Vec2 position = body->GetPosition();
-    
+
     // Draw circle
     glColor3f(1.0, 0.0, 0.0);
     glBegin(GL_TRIANGLE_FAN);
@@ -122,7 +132,7 @@ void draw(void)
         char window_title[128];
         snprintf(window_title, 128,
                 "Box2D: %f fps, level %d/%d",
-                frame_count / (frametime / 1000.f), -1, num_levels);
+                frame_count / (frametime / 1000.f), current_level, num_levels);
         glutSetWindowTitle(window_title);
         last_time = time;
         frame_count = 0;
@@ -159,6 +169,22 @@ void key_pressed(unsigned char key, int x, int y)
             else {
                 play = 1;
             }
+            break;
+        case '1':
+            load_world(0);
+            break;
+        case '2':
+            load_world(1);
+            break;
+        case '3':
+            load_world(2);
+            break;
+        case '4':
+            load_world(3);
+            break;
+        case '5':
+            load_world(4);
+            break;
         default:
             break;
     }
