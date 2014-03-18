@@ -23,18 +23,21 @@ const float world_x = 8.f, world_y = 6.f; // Level (world) size in meters
 
 int last_time;
 int frame_count;
+int play = 0;
 
 // Information about the levels loaded from files will be available in these.
 unsigned int num_levels;
 level_t *levels;
 
+b2World* world;
+b2Body* body;
 
 /*
  * Load a given world, i.e. read the world from the `levels' data structure and
  * convert it into a Box2D world.
  */
-void load_world(unsigned int level)
-{
+void load_world(unsigned int level) {
+
     if (level >= num_levels)
     {
         // Note that level is unsigned but we still use %d so -1 is shown as
@@ -45,6 +48,30 @@ void load_world(unsigned int level)
 
     // Create a Box2D world and populate it with all bodies for this level
     // (including the ball).
+    b2Vec2 gravity (0, -9.81);
+    bool do_sleep = true;
+
+    world = new b2World(gravity);
+    world->SetAllowSleeping(do_sleep);
+
+    // printf("num_polygons = %i\n", levels[0].num_polygons);
+    // printf("is_Dynamic = %d\n", levels[0].polygons[0].is_dynamic);
+
+    b2BodyDef body_def;
+    body_def.type = b2_dynamicBody;
+    body_def.position.Set(3.0f, 4.0f);
+    body = world->CreateBody(&body_def);
+
+    b2CircleShape circle;
+    circle.m_p.Set(3.0f, 4.0f);
+    circle.m_radius = 0.5f;
+
+    b2FixtureDef fixture_def;
+    fixture_def.shape = &circle;
+    fixture_def.density = 1.0f;
+    fixture_def.friction = 0.3f;
+
+    body->CreateFixture(&fixture_def);
 }
 
 
@@ -67,6 +94,24 @@ void draw(void)
     // Do any logic and drawing here.
     //
 
+    // suggested vel = 8, suggested pos = 3.
+    float32 timestep = 1.0f / 60.0f;
+    int32 velocity_iterations = 6;
+    int32 position_iterations = 2;
+    if (play) {
+        world->Step(timestep, velocity_iterations, position_iterations);
+    }
+
+    b2Vec2 position = body->GetPosition();
+    
+    // Draw circle
+    glColor3f(1.0, 0.0, 0.0);
+    glBegin(GL_TRIANGLE_FAN);
+    glVertex2f(position.x, position.y);
+    for (int i = 0; i <= 360; i += 5) {
+        glVertex2f(position.x + sin(i) * 0.1, position.y + cos(i) * 0.1);
+    }
+    glEnd();
 
     // Show rendered frame
     glutSwapBuffers();
@@ -107,6 +152,13 @@ void key_pressed(unsigned char key, int x, int y)
             exit(0);
             break;
         // Add any keys you want to use, either for debugging or gameplay.
+        case ' ':
+            if (play) {
+                play = 0;
+            }
+            else {
+                play = 1;
+            }
         default:
             break;
     }
