@@ -137,8 +137,25 @@ void draw(void) {
 
 	if (play) {
 		world->Step(timestep, velocity_iterations, position_iterations);
+
+		/* If the ball has reached the finish, continue to the next level or finish the game. */
 		if (ballHasReachedFinish(position)) {
-			fprintf(stderr, "You won the game!\n");
+			if (current_level > num_levels) {
+				fprintf(stderr, "You have won the game! Also, you have lost the game... ;)\n");
+				exit(0);
+			} else {
+				fprintf(stderr, "You finished level %d!\n", current_level);
+
+				if (current_level >= num_levels) {
+					fprintf(stderr, "You have won the game! Also, you have lost the game... ;)\n");
+					exit(0);
+				} else {
+					load_world(current_level);
+
+					/* Automatically pause the world... */
+					play = 0;
+				}
+			}
 		}
 	}
 
