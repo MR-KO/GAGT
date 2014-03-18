@@ -30,7 +30,6 @@ unsigned int num_levels;
 level_t *levels;
 
 b2World *world;
-b2Body *body;
 b2Body *ground;
 b2Body *ball;
 int current_level;
@@ -71,23 +70,29 @@ void load_world(unsigned int level) {
 	// printf("num_polygons = %i\n", levels[0].num_polygons);
 	// printf("is_Dynamic = %d\n", levels[0].polygons[0].is_dynamic);
 
-	// Setup ball.
-	b2BodyDef body_def;
-	body_def.type = b2_dynamicBody;
-	body_def.position.Set(levels[level].start.x, levels[level].start.y);
-	ball = body = world->CreateBody(&body_def);
+	// Create ground
+    b2BodyDef groundBodyDef;
+    groundBodyDef.position.Set(0.0f, -world_y/2);
+    ground = world->CreateBody(&groundBodyDef);
 
-	b2CircleShape circle;
-	// circle.m_p.Set(3.0f, 4.0f);
-	circle.m_radius = ball_radius;
+    b2PolygonShape groundBox;
+    groundBox.SetAsBox(world_x, world_y/2);
+    ground->CreateFixture(&groundBox, 0.0f);
 
-	b2FixtureDef fixture_def;
-	fixture_def.shape = &circle;
-	fixture_def.density = 1.0f;
-	fixture_def.friction = 0.3f;
+    // Create ball
+    b2BodyDef ballBodyDef;
+    ballBodyDef.type = b2_dynamicBody;
+    ballBodyDef.position.Set(levels[level].start.x, levels[level].start.y);
+    ball = world->CreateBody(&ballBodyDef);
 
-	body->CreateFixture(&fixture_def);
-	b2Vec2 triangle[3];
+    b2CircleShape dynamicCircle;
+    dynamicCircle.m_radius = ball_radius;
+
+    b2FixtureDef fixtureDef;
+    fixtureDef.shape = &dynamicCircle;
+    fixtureDef.density = 1.0f;
+    fixtureDef.friction = 0.3f;
+    ball->CreateFixture(&fixtureDef);
 
 	// Setup rest of level.
 	// for (int i = 0; i < levels[level].num_polygons; i++) {
@@ -142,7 +147,7 @@ void draw(void) {
 	int32 velocity_iterations = 6;
 	int32 position_iterations = 2;
 
-	b2Vec2 position = body->GetPosition();
+	b2Vec2 position = ball->GetPosition();
 
 	if (play) {
 		world->Step(timestep, velocity_iterations, position_iterations);
