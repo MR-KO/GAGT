@@ -50,11 +50,11 @@ static vec3 interpolate_points(unsigned char isovalue, vec3 p1, vec3 p2,
 	}
 
 	if (t == 0) {
-		fprintf(stderr, "\n\n\nt = 0 ...\n\n\n");
+		// fprintf(stderr, "\n\n\nt = 0 ...\n\n\n");
 	}
 
 	if (t == 1) {
-		fprintf(stderr, "\n\n\nt = 1 ...\n\n\n");
+		// fprintf(stderr, "\n\n\nt = 1 ...\n\n\n");
 	}
 
 	/* Then use that t value to calculate the interpolated point between p1 and p2. */
