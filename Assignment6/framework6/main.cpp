@@ -17,6 +17,12 @@
 #include <Box2D/Box2D.h>
 
 #include "levels.h"
+#include <pthread.h>
+
+void junk() {
+	int i;
+	i = pthread_getconcurrency();
+}
 
 unsigned int reso_x = 800, reso_y = 600; // Window size in pixels
 const float world_x = 8.f, world_y = 6.f; // Level (world) size in meters
@@ -71,28 +77,28 @@ void load_world(unsigned int level) {
 	// printf("is_Dynamic = %d\n", levels[0].polygons[0].is_dynamic);
 
 	// Create ground
-    b2BodyDef groundBodyDef;
-    groundBodyDef.position.Set(0.0f, -world_y/2);
-    ground = world->CreateBody(&groundBodyDef);
+	b2BodyDef groundBodyDef;
+	groundBodyDef.position.Set(0.0f, -world_y/2);
+	ground = world->CreateBody(&groundBodyDef);
 
-    b2PolygonShape groundBox;
-    groundBox.SetAsBox(world_x, world_y/2);
-    ground->CreateFixture(&groundBox, 0.0f);
+	b2PolygonShape groundBox;
+	groundBox.SetAsBox(world_x, world_y/2);
+	ground->CreateFixture(&groundBox, 0.0f);
 
-    // Create ball
-    b2BodyDef ballBodyDef;
-    ballBodyDef.type = b2_dynamicBody;
-    ballBodyDef.position.Set(levels[level].start.x, levels[level].start.y);
-    ball = world->CreateBody(&ballBodyDef);
+	// Create ball
+	b2BodyDef ballBodyDef;
+	ballBodyDef.type = b2_dynamicBody;
+	ballBodyDef.position.Set(levels[level].start.x, levels[level].start.y);
+	ball = world->CreateBody(&ballBodyDef);
 
-    b2CircleShape dynamicCircle;
-    dynamicCircle.m_radius = ball_radius;
+	b2CircleShape dynamicCircle;
+	dynamicCircle.m_radius = ball_radius;
 
-    b2FixtureDef fixtureDef;
-    fixtureDef.shape = &dynamicCircle;
-    fixtureDef.density = 1.0f;
-    fixtureDef.friction = 0.3f;
-    ball->CreateFixture(&fixtureDef);
+	b2FixtureDef fixtureDef;
+	fixtureDef.shape = &dynamicCircle;
+	fixtureDef.density = 1.0f;
+	fixtureDef.friction = 0.3f;
+	ball->CreateFixture(&fixtureDef);
 
 	// Setup rest of level.
 	// for (int i = 0; i < levels[level].num_polygons; i++) {

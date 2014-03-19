@@ -6,7 +6,7 @@ CC = g++
 
 WARNFLAGS = -Wall -Wshadow -pedantic-errors
 CFLAGS = -g -O2 $(WARNFLAGS) -Iinclude/
-LFLAGS = -lBox2D -lGL -lglut
+LFLAGS = -L/usr/local/lib -lBox2D -lGL -lglut -pthread
 
 # Do some substitution to get a list of .o files from the given .cpp files.
 OBJFILES = $(patsubst %.cpp,%.o,$(SRCFILES))
