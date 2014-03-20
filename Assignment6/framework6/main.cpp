@@ -140,6 +140,21 @@ void load_world(unsigned int level) {
 
 		delete[] vertices;
 	}
+
+	// Setup joints.
+	b2Body *body_list = world->GetBodyList();
+	for (unsigned int j = 0; j < cur_level->num_joints; j++) {
+		if (cur_level->joints[j].joint_type == JOINT_REVOLUTE) {
+			printf("REVOMURT!\n");
+			b2RevoluteJointDef jointDef;
+			// DERP NOT WORKING DERP
+			// jointDef.bodyA = body_list[cur_level->joints[j].objectA];
+			// jointDef.bodyB = body_list[cur_level->joints[j].objectB];
+		}
+		else if (cur_level->joints[j].joint_type == JOINT_PULLEY) {
+			printf("PULMURT!\n");
+		}
+	}
 }
 
 float calcDistance(float x1, float y1, float x2, float y2) {

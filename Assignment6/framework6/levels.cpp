@@ -17,7 +17,7 @@ const char *levels_dir = "levels/";
 
 // Debug prints, usefull when modifying this code or encountering bugs when
 // adding/modifying levels.
-const bool debug = false;
+const bool debug = true;
 
 
 /*
