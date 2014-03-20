@@ -39,7 +39,7 @@ level_t *levels;
 b2World *world;
 b2Body *ground;
 b2Body *ball;
-int current_level;
+unsigned int current_level;
 level_t *cur_level;
 
 float ball_radius = 0.1F;
@@ -163,7 +163,7 @@ void drawPolygon(b2Body *body, b2PolygonShape *polygon) {
 	glColor3f(0.0, 1.0, 0.0);
 	glBegin(GL_POLYGON);
 
-	for (unsigned int i = 0; i < polygon->GetVertexCount(); i++) {
+	for (int i = 0; i < polygon->GetVertexCount(); i++) {
 		b2Vec2 vertex = body->GetWorldPoint(polygon->GetVertex(i));
 		glVertex2f(vertex.x, vertex.y);
 	}
