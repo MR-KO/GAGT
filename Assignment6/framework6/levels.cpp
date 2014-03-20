@@ -17,7 +17,7 @@ const char *levels_dir = "levels/";
 
 // Debug prints, usefull when modifying this code or encountering bugs when
 // adding/modifying levels.
-const bool debug = true;
+const bool debug = false;
 
 
 /*
@@ -165,8 +165,8 @@ level_t load_level(const char *level_name)
 			pulley.objectB = atoi(tokens[2].c_str());
 			pulley.pulley.ground1.x = atof(tokens[3].c_str());
 			pulley.pulley.ground1.y = atof(tokens[4].c_str());
-			pulley.pulley.ground1.x = atof(tokens[5].c_str());
-			pulley.pulley.ground1.y = atof(tokens[6].c_str());
+			pulley.pulley.ground2.x = atof(tokens[5].c_str());
+			pulley.pulley.ground2.y = atof(tokens[6].c_str());
 			pulley.anchor.x = atof(tokens[7].c_str());
 			pulley.anchor.y = atof(tokens[8].c_str());
 			pulley.pulley.anchor2.x = atof(tokens[9].c_str());
