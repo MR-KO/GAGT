@@ -171,6 +171,32 @@ void drawPolygon(b2Body *body, b2PolygonShape *polygon) {
 	glEnd();
 }
 
+void drawBall() {
+	b2Vec2 position = ball->GetPosition();
+
+	// Draw the ball using a triangle fan so it looks sphere-like.
+	glColor3f(1.0, 0.0, 0.0);
+	glBegin(GL_TRIANGLE_FAN);
+	glVertex2f(position.x, position.y);
+
+	for (int i = 0; i <= 360; i += 5) {
+		glVertex2f(position.x + sin(i) * ball_radius, position.y + cos(i) * ball_radius);
+	}
+
+	glEnd();
+}
+
+void drawFinish() {
+	point_t finish = levels[current_level].end;
+
+	glColor3f(0.0, 0.0, 1.0);
+	glBegin(GL_POLYGON);
+		glVertex2f(finish.x - finish_width, finish.y - finish_height);
+		glVertex2f(finish.x - finish_width, finish.y + finish_height);
+		glVertex2f(finish.x + finish_width, finish.y + finish_height);
+		glVertex2f(finish.x + finish_width, finish.y - finish_height);
+	glEnd();
+}
 
 /*
  * Called when we should redraw the scene (i.e. every frame).
@@ -220,12 +246,12 @@ void draw(void) {
 		current_polygon++;
 	}
 
-	b2Vec2 position = ball->GetPosition();
-
 	if (play) {
 		world->Step(timestep, velocity_iterations, position_iterations);
 
 		/* If the ball has reached the finish, continue to the next level or finish the game. */
+		b2Vec2 position = ball->GetPosition();
+
 		if (ballHasReachedFinish(position)) {
 			if (current_level > num_levels) {
 				fprintf(stderr, "You have won the game! Also, you have lost the game... ;)\n");
@@ -247,26 +273,10 @@ void draw(void) {
 	}
 
 	// Draw ball
-	glColor3f(1.0, 0.0, 0.0);
-	glBegin(GL_TRIANGLE_FAN);
-	glVertex2f(position.x, position.y);
-
-	for (int i = 0; i <= 360; i += 5) {
-		glVertex2f(position.x + sin(i) * ball_radius, position.y + cos(i) * ball_radius);
-	}
-
-	glEnd();
+	drawBall();
 
 	// Draw finish
-	point_t finish = levels[current_level].end;
-
-	glColor3f(0.0, 0.0, 1.0);
-	glBegin(GL_POLYGON);
-		glVertex2f(finish.x - finish_width, finish.y - finish_height);
-		glVertex2f(finish.x - finish_width, finish.y + finish_height);
-		glVertex2f(finish.x + finish_width, finish.y + finish_height);
-		glVertex2f(finish.x + finish_width, finish.y - finish_height);
-	glEnd();
+	drawFinish();
 
 
 	// Show rendered frame
