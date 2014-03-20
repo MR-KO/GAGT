@@ -58,6 +58,8 @@ int num_vertices = 0;
  * convert it into a Box2D world.
  */
 void load_world(unsigned int level) {
+	// Pause the game when loading a new level
+	play = 0;
 
 	if (level >= num_levels) {
 		// Note that level is unsigned but we still use %d so -1 is shown as
