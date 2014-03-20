@@ -22,6 +22,7 @@
 void junk() {
 	int i;
 	i = pthread_getconcurrency();
+	i++;
 }
 
 unsigned int reso_x = 800, reso_y = 600; // Window size in pixels
@@ -39,6 +40,7 @@ b2World *world;
 b2Body *ground;
 b2Body *ball;
 int current_level;
+level_t *cur_level;
 
 float ball_radius = 0.1F;
 float finish_width = 0.05F;
@@ -48,7 +50,7 @@ float finish_height = 0.05F;
 const int max_vertices = 4;
 int mouse_mode = 0;
 
-b2Vec2 vertices[max_vertices + 1];
+b2Vec2 draw_vertices[max_vertices + 1];
 int num_vertices = 0;
 
 /*
@@ -67,6 +69,7 @@ void load_world(unsigned int level) {
 	// Create a Box2D world and populate it with all bodies for this level
 	// (including the ball).
 	current_level = level + 1;
+	cur_level = &(levels[level]);
 	b2Vec2 gravity (0, -9.81);
 	bool do_sleep = true;
 
@@ -88,7 +91,7 @@ void load_world(unsigned int level) {
 	// Create ball
 	b2BodyDef ballBodyDef;
 	ballBodyDef.type = b2_dynamicBody;
-	ballBodyDef.position.Set(levels[level].start.x, levels[level].start.y);
+	ballBodyDef.position.Set(cur_level->start.x, cur_level->start.y);
 	ball = world->CreateBody(&ballBodyDef);
 
 	b2CircleShape dynamicCircle;
@@ -101,10 +104,31 @@ void load_world(unsigned int level) {
 	ball->CreateFixture(&fixtureDef);
 
 	// Setup rest of level.
-	// for (int i = 0; i < levels[level].num_polygons; i++) {
-	//     [levels[level].polygons[i].num_verts];
-	//     triangle
-	// }
+	for (unsigned int i = 0; i < cur_level->num_polygons; i++) {
+		b2Vec2 *vertices = new b2Vec2[cur_level->polygons[i].num_verts];
+
+		for (unsigned int j = 0; j < cur_level->polygons[i].num_verts; j ++) {
+			vertices[j].Set(cur_level->polygons[i].verts[j].x, cur_level->polygons[i].verts[j].y);
+		}
+
+		b2BodyDef body_def;
+
+		if (cur_level->polygons[i].is_dynamic) {
+			body_def.type = b2_dynamicBody;
+		}
+
+		b2Body *body = world->CreateBody(&body_def);
+		b2PolygonShape polygon;
+		polygon.Set(vertices, cur_level->polygons[i].num_verts);
+
+		b2FixtureDef fixture_def;
+		fixture_def.shape = &polygon;
+		fixture_def.density = 1.0f;
+		fixture_def.friction = 0.3f;
+		body->CreateFixture(&fixture_def);
+
+		delete[] vertices;
+	}
 }
 
 float calcDistance(float x1, float y1, float x2, float y2) {
@@ -152,6 +176,54 @@ void draw(void) {
 	float32 timestep = 1.0f / 60.0f;
 	int32 velocity_iterations = 6;
 	int32 position_iterations = 2;
+
+	b2Body *body_list = world->GetBodyList();
+
+	while(body_list != NULL) {
+		b2Fixture *fixture_list = body_list->GetFixtureList();
+
+		while(fixture_list != NULL) {
+			if (fixture_list->GetType() == 2) {
+				b2PolygonShape *poly = (b2PolygonShape*) fixture_list->GetShape();
+
+				glColor3f(0.0, 1.0, 0.0);
+
+				int poly_count = poly->GetVertexCount();
+
+				if (poly_count == 3) {
+					glBegin(GL_TRIANGLES);
+					fprintf(stderr, "level = %d, poly count = %d\n", current_level,
+						poly->GetVertexCount());
+
+						for (int i = 0; i < poly->GetVertexCount(); i++) {
+							b2Vec2 vertex = poly->GetVertex(i);
+							fprintf(stderr, "vertex (%g, %g)\n", vertex.x, vertex.y);
+							glVertex2f(vertex.x, vertex.y);
+						}
+
+					glEnd();
+				}
+
+				if (poly_count == 4 && ground != body_list) {
+					glBegin(GL_QUADS);
+					fprintf(stderr, "level = %d, poly count = %d\n", current_level,
+						poly->GetVertexCount());
+
+						for (int i = 0; i < poly->GetVertexCount(); i++) {
+							b2Vec2 vertex = poly->GetVertex(i);
+							fprintf(stderr, "vertex (%g, %g)\n", vertex.x, vertex.y);
+							glVertex2f(vertex.x, vertex.y);
+						}
+
+					glEnd();
+				}
+			}
+
+			fixture_list = fixture_list->GetNext();
+		}
+
+		body_list = body_list->GetNext();
+	}
 
 	b2Vec2 position = ball->GetPosition();
 
@@ -276,8 +348,8 @@ void mouse_clicked(int button, int state, int x, int y) {
 			/* First case: attempt at creating a quad... */
 			if (num_vertices == max_vertices) {
 				/* Convert clicked mouse point to world vertex. */
-				vertices[num_vertices].x = x * (world_x / reso_x);
-				vertices[num_vertices].y = (-y - reso_y) * (world_y / reso_y);
+				draw_vertices[num_vertices].x = x * (world_x / reso_x);
+				draw_vertices[num_vertices].y = (-y - reso_y) * (world_y / reso_y);
 				/* 5 vertices have been drawn now. */
 			}
 		} else if (button == GLUT_RIGHT_BUTTON) {
