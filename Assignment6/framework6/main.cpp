@@ -54,6 +54,19 @@ int mouse_mode = 0;
 b2Vec2 draw_vertices[max_vertices];
 int num_vertices = -1;
 
+b2Joint **joints = NULL;
+
+
+void cleanup() {
+	for (unsigned int i = 0; i < cur_level->num_joints; i++) {
+		world->DestroyJoint(joints[i]);
+		joints[i] = NULL;
+	}
+
+	delete[] joints;
+	joints = NULL;
+}
+
 void makePolygon(int is_dynamic, float pos_x, float pos_y, b2Vec2 *vertices, int vertices_amount) {
 	b2BodyDef body_def;
 
@@ -73,6 +86,17 @@ void makePolygon(int is_dynamic, float pos_x, float pos_y, b2Vec2 *vertices, int
 	fixture_def.density = 1.0f;
 	fixture_def.friction = 0.3f;
 	body->CreateFixture(&fixture_def);
+}
+
+b2Body* getBodyFromPolygonList(unsigned int number) {
+	b2Body *body_list = world->GetBodyList();
+
+	while (body_list != NULL && number > 0) {
+		body_list = body_list->GetNext();
+		number--;
+	}
+
+	return body_list;
 }
 
 /*
@@ -142,16 +166,26 @@ void load_world(unsigned int level) {
 	}
 
 	// Setup joints.
-	b2Body *body_list = world->GetBodyList();
-	for (unsigned int j = 0; j < cur_level->num_joints; j++) {
-		if (cur_level->joints[j].joint_type == JOINT_REVOLUTE) {
+	joints = new b2Joint*[cur_level->num_joints];
+
+	for (unsigned int i = 0; i < cur_level->num_joints; i++) {
+		if (cur_level->joints[i].joint_type == JOINT_REVOLUTE) {
 			printf("REVOMURT!\n");
 			b2RevoluteJointDef jointDef;
 			// DERP NOT WORKING DERP
-			// jointDef.bodyA = body_list[cur_level->joints[j].objectA];
-			// jointDef.bodyB = body_list[cur_level->joints[j].objectB];
+			// jointDef.bodyA = body_list[cur_level->joints[i].objectA];
+			// jointDef.bodyB = body_list[cur_level->joints[i].objectB];
+			b2Body *objectA = getBodyFromPolygonList(cur_level->joints[i].objectA);
+			b2Body *objectB = getBodyFromPolygonList(cur_level->joints[i].objectB);
+			jointDef.bodyA = objectA;
+			jointDef.bodyB = objectB;
+			// jointDef.anchorPoint = objectA->GetPosition();
+
+			b2RevoluteJoint *joint = (b2RevoluteJoint *) world->CreateJoint(&jointDef);
+			joints[i] = joint;
 		}
-		else if (cur_level->joints[j].joint_type == JOINT_PULLEY) {
+
+		else if (cur_level->joints[i].joint_type == JOINT_PULLEY) {
 			printf("PULMURT!\n");
 		}
 	}
@@ -397,6 +431,7 @@ void mouse_clicked(int button, int state, int x, int y) {
 			if (num_vertices == max_vertices - 1) {
 				makePolygon(1, 0, 0, draw_vertices, max_vertices);
 			}
+
 			// printf("num_vertices = %d, max_vertices = %d\n", num_vertices, max_vertices);
 		} else if (button == GLUT_RIGHT_BUTTON) {
 			mouse_mode = GLUT_RIGHT_BUTTON;
