@@ -47,11 +47,33 @@ float finish_width = 0.05F;
 float finish_height = 0.05F;
 
 /* Support at most 4 vertices, where the last vertice more or less equals the first. */
+// ^Extreme bullshit alert... Bij een driehoek geef je ook maar drie hoekpunten mee...^
 const int max_vertices = 4;
 int mouse_mode = 0;
 
-b2Vec2 draw_vertices[max_vertices + 1];
-int num_vertices = 0;
+b2Vec2 draw_vertices[max_vertices];
+int num_vertices = -1;
+
+void makePolygon(int is_dynamic, float pos_x, float pos_y, b2Vec2 *vertices, int vertices_amount) {
+	b2BodyDef body_def;
+
+	if (is_dynamic) {
+		body_def.type = b2_dynamicBody;
+	}
+
+	body_def.position.Set(pos_x, pos_y);
+
+	b2Body *body = world->CreateBody(&body_def);
+
+	b2PolygonShape polygon;
+	polygon.Set(vertices, vertices_amount);
+
+	b2FixtureDef fixture_def;
+	fixture_def.shape = &polygon;
+	fixture_def.density = 1.0f;
+	fixture_def.friction = 0.3f;
+	body->CreateFixture(&fixture_def);
+}
 
 /*
  * Load a given world, i.e. read the world from the `levels' data structure and
@@ -83,11 +105,11 @@ void load_world(unsigned int level) {
 
 	// Create ground
 	b2BodyDef groundBodyDef;
-	groundBodyDef.position.Set(0.0f, -world_y/2);
+	groundBodyDef.position.Set(0.0f, -world_y / 2);
 	ground = world->CreateBody(&groundBodyDef);
 
 	b2PolygonShape groundBox;
-	groundBox.SetAsBox(world_x, world_y/2);
+	groundBox.SetAsBox(world_x, world_y / 2);
 	ground->CreateFixture(&groundBox, 0.0f);
 
 	// Create ball
@@ -113,25 +135,8 @@ void load_world(unsigned int level) {
 			vertices[j].Set(cur_level->polygons[i].verts[j].x, cur_level->polygons[i].verts[j].y);
 		}
 
-		b2BodyDef body_def;
-
-		if (cur_level->polygons[i].is_dynamic) {
-			body_def.type = b2_dynamicBody;
-		}
-
-		body_def.position.Set(cur_level->polygons[i].position.x,
-			cur_level->polygons[i].position.y);
-
-		b2Body *body = world->CreateBody(&body_def);
-
-		b2PolygonShape polygon;
-		polygon.Set(vertices, cur_level->polygons[i].num_verts);
-
-		b2FixtureDef fixture_def;
-		fixture_def.shape = &polygon;
-		fixture_def.density = 1.0f;
-		fixture_def.friction = 0.3f;
-		body->CreateFixture(&fixture_def);
+		makePolygon(cur_level->polygons[i].is_dynamic, cur_level->polygons[i].position.x,
+			cur_level->polygons[i].position.y, vertices, cur_level->polygons[i].num_verts);
 
 		delete[] vertices;
 	}
@@ -196,6 +201,18 @@ void drawFinish() {
 		glVertex2f(finish.x + finish_width, finish.y + finish_height);
 		glVertex2f(finish.x + finish_width, finish.y - finish_height);
 	glEnd();
+}
+
+void drawVertex(int amount) {
+	glColor3f(1.0, 1.0, 1.0);
+	for (int i = 0; i <= amount; ++i) {
+		glBegin(GL_POLYGON);
+			glVertex2f(draw_vertices[i].x - 0.05F, draw_vertices[i].y - 0.05F);
+			glVertex2f(draw_vertices[i].x - 0.05F, draw_vertices[i].y + 0.05F);
+			glVertex2f(draw_vertices[i].x + 0.05F, draw_vertices[i].y + 0.05F);
+			glVertex2f(draw_vertices[i].x + 0.05F, draw_vertices[i].y - 0.05F);
+		glEnd();
+	}
 }
 
 /*
@@ -278,6 +295,12 @@ void draw(void) {
 	// Draw finish
 	drawFinish();
 
+	if (num_vertices > -1) {
+		drawVertex(num_vertices);
+		if (num_vertices == max_vertices - 1) {
+			num_vertices = -1;
+		}
+	}
 
 	// Show rendered frame
 	glutSwapBuffers();
@@ -347,16 +370,19 @@ void mouse_clicked(int button, int state, int x, int y) {
 	if (state == GLUT_DOWN && mouse_mode == 0) {
 		if (button == GLUT_LEFT_BUTTON) {
 			mouse_mode = GLUT_LEFT_BUTTON;
+			num_vertices++;
 
 			/* Add the mouse click to the vertices array: determine cases... */
 
+			/* Convert clicked mouse point to world vertex. */
+			draw_vertices[num_vertices].x = x * (world_x / reso_x);
+			draw_vertices[num_vertices].y = (reso_y - y) * (world_y / reso_y);
+
 			/* First case: attempt at creating a quad... */
-			if (num_vertices == max_vertices) {
-				/* Convert clicked mouse point to world vertex. */
-				draw_vertices[num_vertices].x = x * (world_x / reso_x);
-				draw_vertices[num_vertices].y = (-y - reso_y) * (world_y / reso_y);
-				/* 5 vertices have been drawn now. */
+			if (num_vertices == max_vertices - 1) {
+				makePolygon(1, 0, 0, draw_vertices, max_vertices);
 			}
+			// printf("num_vertices = %d, max_vertices = %d\n", num_vertices, max_vertices);
 		} else if (button == GLUT_RIGHT_BUTTON) {
 			mouse_mode = GLUT_RIGHT_BUTTON;
 
