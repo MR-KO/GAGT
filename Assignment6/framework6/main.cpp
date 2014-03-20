@@ -117,7 +117,11 @@ void load_world(unsigned int level) {
 			body_def.type = b2_dynamicBody;
 		}
 
+		body_def.position.Set(cur_level->polygons[i].position.x,
+			cur_level->polygons[i].position.y);
+
 		b2Body *body = world->CreateBody(&body_def);
+
 		b2PolygonShape polygon;
 		polygon.Set(vertices, cur_level->polygons[i].num_verts);
 
@@ -153,6 +157,18 @@ bool ballHasReachedFinish(b2Vec2 ball_position) {
 		(distance3 <= ball_radius) || (distance4 <= ball_radius));
 }
 
+void drawPolygon(b2Body *body, b2PolygonShape *polygon) {
+	glColor3f(0.0, 1.0, 0.0);
+	glBegin(GL_POLYGON);
+
+	for (unsigned int i = 0; i < polygon->GetVertexCount(); i++) {
+		b2Vec2 vertex = body->GetWorldPoint(polygon->GetVertex(i));
+		glVertex2f(vertex.x, vertex.y);
+	}
+
+	glEnd();
+}
+
 
 /*
  * Called when we should redraw the scene (i.e. every frame).
@@ -178,51 +194,28 @@ void draw(void) {
 	int32 position_iterations = 2;
 
 	b2Body *body_list = world->GetBodyList();
+	int current_polygon = 0;
 
 	while(body_list != NULL) {
 		b2Fixture *fixture_list = body_list->GetFixtureList();
 
+		if (ground == body_list) {
+			body_list = body_list->GetNext();
+			current_polygon++;
+			continue;
+		}
+
 		while(fixture_list != NULL) {
 			if (fixture_list->GetType() == 2) {
 				b2PolygonShape *poly = (b2PolygonShape*) fixture_list->GetShape();
-
-				glColor3f(0.0, 1.0, 0.0);
-
-				int poly_count = poly->GetVertexCount();
-
-				if (poly_count == 3) {
-					glBegin(GL_TRIANGLES);
-					fprintf(stderr, "level = %d, poly count = %d\n", current_level,
-						poly->GetVertexCount());
-
-						for (int i = 0; i < poly->GetVertexCount(); i++) {
-							b2Vec2 vertex = poly->GetVertex(i);
-							fprintf(stderr, "vertex (%g, %g)\n", vertex.x, vertex.y);
-							glVertex2f(vertex.x, vertex.y);
-						}
-
-					glEnd();
-				}
-
-				if (poly_count == 4 && ground != body_list) {
-					glBegin(GL_QUADS);
-					fprintf(stderr, "level = %d, poly count = %d\n", current_level,
-						poly->GetVertexCount());
-
-						for (int i = 0; i < poly->GetVertexCount(); i++) {
-							b2Vec2 vertex = poly->GetVertex(i);
-							fprintf(stderr, "vertex (%g, %g)\n", vertex.x, vertex.y);
-							glVertex2f(vertex.x, vertex.y);
-						}
-
-					glEnd();
-				}
+				drawPolygon(body_list, poly);
 			}
 
 			fixture_list = fixture_list->GetNext();
 		}
 
 		body_list = body_list->GetNext();
+		current_polygon++;
 	}
 
 	b2Vec2 position = ball->GetPosition();
@@ -251,7 +244,7 @@ void draw(void) {
 		}
 	}
 
-	// Draw circle
+	// Draw ball
 	glColor3f(1.0, 0.0, 0.0);
 	glBegin(GL_TRIANGLE_FAN);
 	glVertex2f(position.x, position.y);
