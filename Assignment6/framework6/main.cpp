@@ -58,8 +58,6 @@ b2Body **created_bodies = NULL;
 int num_created_bodies = 0;
 int num_max_bodies = 100;
 
-b2Joint **joints = NULL;
-
 void init(int num_joints);
 void cleanup();
 void addBodyToCreatedBodies(b2Body *body, int index);
@@ -67,13 +65,10 @@ void addBodyToCreatedBodies(b2Body *body, int index);
 void init(int num_joints) {
 	cleanup();
 	created_bodies = new b2Body*[num_max_bodies];
-	joints = new b2Joint*[num_joints];
 }
 
 void cleanup() {
-	if (world != NULL && joints != NULL && created_bodies != NULL) {
-		delete[] joints;
-		joints = NULL;
+	if (world != NULL && created_bodies != NULL) {
 		delete world;
 		world = NULL;
 		delete[] created_bodies;
@@ -148,7 +143,7 @@ void load_world(unsigned int level) {
 	groundBodyDef.position.Set(0.0f, -world_y / 2);
 	ground = world->CreateBody(&groundBodyDef);
 
-	addBodyToCreatedBodies(ground, num_created_bodies++);
+	// addBodyToCreatedBodies(ground, num_created_bodies++);
 
 	b2PolygonShape groundBox;
 	groundBox.SetAsBox(world_x, world_y / 2);
@@ -185,8 +180,6 @@ void load_world(unsigned int level) {
 	ball->CreateFixture(&fixtureDef);
 
 	// Setup joints.
-	joints = new b2Joint*[cur_level->num_joints];
-
 	for (unsigned int i = 0; i < cur_level->num_joints; i++) {
 		if (cur_level->joints[i].joint_type == JOINT_REVOLUTE) {
 			printf("REVOMURT!\n");
@@ -200,7 +193,6 @@ void load_world(unsigned int level) {
 			jointDef.Initialize(objectA, objectB, anchorPoint);
 
 			b2RevoluteJoint *joint = (b2RevoluteJoint *) world->CreateJoint(&jointDef);
-			joints[i] = joint;
 		}
 
 		else if (cur_level->joints[i].joint_type == JOINT_PULLEY) {
