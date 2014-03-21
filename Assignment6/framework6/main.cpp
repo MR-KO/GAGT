@@ -16,6 +16,8 @@
 #include <GL/glut.h>
 #include <Box2D/Box2D.h>
 
+#include <ctime>
+#include "sys/time.h"
 #include "levels.h"
 #include <pthread.h>
 
@@ -47,6 +49,8 @@ float ball_radius = 0.1F;
 float finish_width = 0.05F;
 float finish_height = 0.05F;
 
+timeval start_time, finish_time, play_time;
+
 /* Support at most 4 vertices, where the last vertice more or less equals the first. */
 // ^Extreme bullshit alert... Bij een driehoek geef je ook maar drie hoekpunten mee...^
 const int max_vertices = 8;
@@ -66,6 +70,7 @@ void addBodyToCreatedBodies(b2Body *body, int index);
 void init(int num_joints) {
 	cleanup();
 	created_bodies = new b2Body*[num_max_bodies];
+	gettimeofday(&start_time, 0);
 }
 
 void cleanup() {
@@ -202,7 +207,7 @@ void load_world(unsigned int level) {
 				cur_level->joints[i].anchor.y);
 			jointDef.Initialize(objectA, objectB, anchorPoint);
 
-			b2RevoluteJoint *joint = (b2RevoluteJoint *) world->CreateJoint(&jointDef);
+			world->CreateJoint(&jointDef);
 		}
 
 		else if (cur_level->joints[i].joint_type == JOINT_PULLEY) {
@@ -351,10 +356,17 @@ void draw(void) {
 
 		if (ballHasReachedFinish(position)) {
 			if (current_level > num_levels) {
+				timeval play_time2;
+				gettimeofday(&play_time2, 0);
+
+				fprintf(stderr, "You have played for %d seconds.\n",
+					play_time2.tv_sec - play_time.tv_sec);
 				fprintf(stderr, "You have won the game! Also, you have lost the game... ;)\n");
 				exit(0);
 			} else {
-				fprintf(stderr, "You finished level %d!\n", current_level);
+				gettimeofday(&finish_time, 0);
+				fprintf(stderr, "You finished level %d in %d seconds!\n", current_level,
+					finish_time.tv_sec - start_time.tv_sec);
 
 				if (current_level >= num_levels) {
 					fprintf(stderr, "You have won the game! Also, you have lost the game... ;)\n");
@@ -531,6 +543,7 @@ int main(int argc, char **argv) {
 	printf("Loaded %d levels.\n", num_levels);
 
 	// Load the first level (i.e. create all Box2D stuff).
+	gettimeofday(&play_time, 0);
 	load_world(0);
 
 	last_time = glutGet(GLUT_ELAPSED_TIME);
