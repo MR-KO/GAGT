@@ -114,6 +114,12 @@ void addBodyToCreatedBodies(b2Body *body, int index) {
 	created_bodies[index] = body;
 }
 
+void resetBall() {
+	ball->SetTransform(b2Vec2(cur_level->start.x, cur_level->start.y), 0);
+	ball->SetLinearVelocity(b2Vec2(0, 0));
+	play = 0;
+}
+
 /*
  * Load a given world, i.e. read the world from the `levels' data structure and
  * convert it into a Box2D world.
@@ -417,20 +423,28 @@ void key_pressed(unsigned char key, int x, int y) {
 		case ' ':
 			play = !play;
 			break;
-		case '1':
-			load_world(0);
+		// case '1':
+		// 	load_world(0);
+		// 	break;
+		// case '2':
+		// 	load_world(1);
+		// 	break;
+		// case '3':
+		// 	load_world(2);
+		// 	break;
+		// case '4':
+		// 	load_world(3);
+		// 	break;
+		// case '5':
+		// 	load_world(4);
+		// 	break;
+		case 'r':
+			/* Reset level. */
+			load_world(current_level - 1);
 			break;
-		case '2':
-			load_world(1);
-			break;
-		case '3':
-			load_world(2);
-			break;
-		case '4':
-			load_world(3);
-			break;
-		case '5':
-			load_world(4);
+		case 'b':
+			/* Reset ball to starting position. */
+			resetBall();
 			break;
 		default:
 			break;
@@ -448,16 +462,13 @@ void mouse_clicked(int button, int state, int x, int y) {
 		if (button == GLUT_LEFT_BUTTON) {
 			mouse_mode = GLUT_LEFT_BUTTON;
 			num_vertices++;
-			printf("num_vertices = %d\n", num_vertices);
-
-			/* Add the mouse click to the vertices array: determine cases... */
 
 			/* Convert clicked mouse point to world vertex. */
 			draw_vertices[num_vertices].x = x * (world_x / reso_x);
 			draw_vertices[num_vertices].y = (reso_y - y) * (world_y / reso_y);
 
 			if (num_vertices > 0) {
-				float distance = calcDistance(draw_vertices[num_vertices].x, draw_vertices[num_vertices].y, 
+				float distance = calcDistance(draw_vertices[num_vertices].x, draw_vertices[num_vertices].y,
 					draw_vertices[num_vertices - 1].x, draw_vertices[num_vertices - 1].y);
 				if (distance < 0.01) {
 					num_vertices--;
