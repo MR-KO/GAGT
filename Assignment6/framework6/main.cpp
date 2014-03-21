@@ -182,7 +182,6 @@ void load_world(unsigned int level) {
 	// Setup joints.
 	for (unsigned int i = 0; i < cur_level->num_joints; i++) {
 		if (cur_level->joints[i].joint_type == JOINT_REVOLUTE) {
-			printf("REVOMURT!\n");
 			b2RevoluteJointDef jointDef;
 			// jointDef.anchorPoint = objectA->GetPosition();
 			b2Body *objectA = created_bodies[cur_level->joints[i].objectA];
@@ -196,7 +195,18 @@ void load_world(unsigned int level) {
 		}
 
 		else if (cur_level->joints[i].joint_type == JOINT_PULLEY) {
-			printf("PULMURT!\n");
+			b2Vec2 anchorPoint1(cur_level->joints[i].anchor.x, cur_level->joints[i].anchor.x);
+			b2Vec2 anchorPoint2(cur_level->joints[i].pulley.anchor2.x, cur_level->joints[i].pulley.anchor2.x);
+			b2Vec2 groundAnchor1(cur_level->joints[i].pulley.ground1.x, cur_level->joints[i].pulley.ground1.y);
+			b2Vec2 groundAnchor2(cur_level->joints[i].pulley.ground2.x, cur_level->joints[i].pulley.ground2.y);
+			float ratio = cur_level->joints[i].pulley.ratio;
+
+			b2Body *objectA = created_bodies[cur_level->joints[i].objectA];
+			b2Body *objectB = created_bodies[cur_level->joints[i].objectB];
+
+			b2PulleyJointDef jointDef;
+			jointDef.Initialize(objectA, objectB, groundAnchor1, groundAnchor2, anchorPoint1, anchorPoint2, ratio);
+			world->CreateJoint(&jointDef);
 		}
 	}
 }
