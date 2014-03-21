@@ -54,20 +54,37 @@ int mouse_mode = 0;
 b2Vec2 draw_vertices[max_vertices];
 int num_vertices = -1;
 
+b2Body **created_bodies = NULL;
+int num_created_bodies = 0;
+int num_max_bodies = 100;
+
 b2Joint **joints = NULL;
 
+void init(int num_joints);
+void cleanup();
+void addBodyToCreatedBodies(b2Body *body, int index);
 
-void cleanup() {
-	for (unsigned int i = 0; i < cur_level->num_joints; i++) {
-		world->DestroyJoint(joints[i]);
-		joints[i] = NULL;
-	}
-
-	delete[] joints;
-	joints = NULL;
+void init(int num_joints) {
+	cleanup();
+	created_bodies = new b2Body*[num_max_bodies];
+	joints = new b2Joint*[num_joints];
 }
 
-void makePolygon(int is_dynamic, float pos_x, float pos_y, b2Vec2 *vertices, int vertices_amount) {
+void cleanup() {
+	if (world != NULL && joints != NULL && created_bodies != NULL) {
+		delete[] joints;
+		joints = NULL;
+		delete world;
+		world = NULL;
+		delete[] created_bodies;
+		created_bodies = NULL;
+		num_created_bodies = 0;
+	}
+}
+
+void makePolygon(int is_dynamic, float pos_x, float pos_y, b2Vec2 *vertices,
+	int vertices_amount, int index) {
+
 	b2BodyDef body_def;
 
 	if (is_dynamic) {
@@ -86,17 +103,15 @@ void makePolygon(int is_dynamic, float pos_x, float pos_y, b2Vec2 *vertices, int
 	fixture_def.density = 1.0f;
 	fixture_def.friction = 0.3f;
 	body->CreateFixture(&fixture_def);
+	addBodyToCreatedBodies(body, index);
 }
 
-b2Body* getBodyFromPolygonList(unsigned int number) {
-	b2Body *body_list = world->GetBodyList();
-
-	while (body_list != NULL && number > 0) {
-		body_list = body_list->GetNext();
-		number--;
+void addBodyToCreatedBodies(b2Body *body, int index) {
+	if (index < 0 || index > num_created_bodies) {
+		return;
 	}
 
-	return body_list;
+	created_bodies[index] = body;
 }
 
 /*
@@ -118,6 +133,7 @@ void load_world(unsigned int level) {
 	// (including the ball).
 	current_level = level + 1;
 	cur_level = &(levels[level]);
+	init(cur_level->num_joints);
 	b2Vec2 gravity (0, -9.81);
 	bool do_sleep = true;
 
@@ -132,9 +148,26 @@ void load_world(unsigned int level) {
 	groundBodyDef.position.Set(0.0f, -world_y / 2);
 	ground = world->CreateBody(&groundBodyDef);
 
+	addBodyToCreatedBodies(ground, num_created_bodies++);
+
 	b2PolygonShape groundBox;
 	groundBox.SetAsBox(world_x, world_y / 2);
 	ground->CreateFixture(&groundBox, 0.0f);
+
+	// Setup rest of level.
+	for (unsigned int i = 0; i < cur_level->num_polygons; i++) {
+		b2Vec2 *vertices = new b2Vec2[cur_level->polygons[i].num_verts];
+
+		for (unsigned int j = 0; j < cur_level->polygons[i].num_verts; j ++) {
+			vertices[j].Set(cur_level->polygons[i].verts[j].x, cur_level->polygons[i].verts[j].y);
+		}
+
+		makePolygon(cur_level->polygons[i].is_dynamic, cur_level->polygons[i].position.x,
+			cur_level->polygons[i].position.y, vertices, cur_level->polygons[i].num_verts,
+			num_created_bodies++);
+
+		delete[] vertices;
+	}
 
 	// Create ball
 	b2BodyDef ballBodyDef;
@@ -151,20 +184,6 @@ void load_world(unsigned int level) {
 	fixtureDef.friction = 0.3f;
 	ball->CreateFixture(&fixtureDef);
 
-	// Setup rest of level.
-	for (unsigned int i = 0; i < cur_level->num_polygons; i++) {
-		b2Vec2 *vertices = new b2Vec2[cur_level->polygons[i].num_verts];
-
-		for (unsigned int j = 0; j < cur_level->polygons[i].num_verts; j ++) {
-			vertices[j].Set(cur_level->polygons[i].verts[j].x, cur_level->polygons[i].verts[j].y);
-		}
-
-		makePolygon(cur_level->polygons[i].is_dynamic, cur_level->polygons[i].position.x,
-			cur_level->polygons[i].position.y, vertices, cur_level->polygons[i].num_verts);
-
-		delete[] vertices;
-	}
-
 	// Setup joints.
 	joints = new b2Joint*[cur_level->num_joints];
 
@@ -175,14 +194,21 @@ void load_world(unsigned int level) {
 			// DERP NOT WORKING DERP
 			// jointDef.bodyA = body_list[cur_level->joints[i].objectA];
 			// jointDef.bodyB = body_list[cur_level->joints[i].objectB];
-			b2Body *objectA = getBodyFromPolygonList(cur_level->joints[i].objectA);
-			b2Body *objectB = getBodyFromPolygonList(cur_level->joints[i].objectB);
-			jointDef.bodyA = objectA;
-			jointDef.bodyB = objectB;
+
+			// b2Body *objectA = getBodyFromPolygonList(cur_level->joints[i].objectA);
+			// b2Body *objectB = getBodyFromPolygonList(cur_level->joints[i].objectB);
+
+			// jointDef.bodyA = objectA;
+			// jointDef.bodyB = objectB;
+
 			// jointDef.anchorPoint = objectA->GetPosition();
 
-			b2RevoluteJoint *joint = (b2RevoluteJoint *) world->CreateJoint(&jointDef);
-			joints[i] = joint;
+			// b2Vec2 anchorPoint(cur_level->joints[i].anchor.x,
+			// 	cur_level->joints[i].anchor.y);
+			// jointDef.Initialize(objectA, objectB, anchorPoint);
+
+			// b2RevoluteJoint *joint = (b2RevoluteJoint *) world->CreateJoint(&jointDef);
+			// joints[i] = joint;
 		}
 
 		else if (cur_level->joints[i].joint_type == JOINT_PULLEY) {
@@ -197,8 +223,8 @@ float calcDistance(float x1, float y1, float x2, float y2) {
 
 /* Returns true if the ball is on the edge of the ball, or inside the ball. */
 bool ballHasReachedFinish(b2Vec2 ball_position) {
-	float finish_x = levels[current_level].end.x;
-	float finish_y = levels[current_level].end.y;
+	float finish_x = cur_level->end.x;
+	float finish_y = cur_level->end.y;
 	float ball_x = ball_position.x;
 	float ball_y = ball_position.y;
 
@@ -241,7 +267,7 @@ void drawBall() {
 }
 
 void drawFinish() {
-	point_t finish = levels[current_level].end;
+	point_t finish = cur_level->end;
 
 	glColor3f(0.0, 0.0, 1.0);
 	glBegin(GL_POLYGON);
@@ -383,6 +409,7 @@ void key_pressed(unsigned char key, int x, int y) {
 	switch (key) {
 		case 27: // Esc
 		case 'q':
+			cleanup();
 			exit(0);
 			break;
 		// Add any keys you want to use, either for debugging or gameplay.
@@ -429,7 +456,7 @@ void mouse_clicked(int button, int state, int x, int y) {
 
 			/* First case: attempt at creating a quad... */
 			if (num_vertices == max_vertices - 1) {
-				makePolygon(1, 0, 0, draw_vertices, max_vertices);
+				makePolygon(1, 0, 0, draw_vertices, max_vertices, num_created_bodies++);
 			}
 
 			// printf("num_vertices = %d, max_vertices = %d\n", num_vertices, max_vertices);
