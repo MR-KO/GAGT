@@ -191,24 +191,16 @@ void load_world(unsigned int level) {
 		if (cur_level->joints[i].joint_type == JOINT_REVOLUTE) {
 			printf("REVOMURT!\n");
 			b2RevoluteJointDef jointDef;
-			// DERP NOT WORKING DERP
-			// jointDef.bodyA = body_list[cur_level->joints[i].objectA];
-			// jointDef.bodyB = body_list[cur_level->joints[i].objectB];
-
-			// b2Body *objectA = getBodyFromPolygonList(cur_level->joints[i].objectA);
-			// b2Body *objectB = getBodyFromPolygonList(cur_level->joints[i].objectB);
-
-			// jointDef.bodyA = objectA;
-			// jointDef.bodyB = objectB;
-
 			// jointDef.anchorPoint = objectA->GetPosition();
+			b2Body *objectA = created_bodies[cur_level->joints[i].objectA];
+			b2Body *objectB = created_bodies[cur_level->joints[i].objectB];
 
-			// b2Vec2 anchorPoint(cur_level->joints[i].anchor.x,
-			// 	cur_level->joints[i].anchor.y);
-			// jointDef.Initialize(objectA, objectB, anchorPoint);
+			b2Vec2 anchorPoint(cur_level->joints[i].anchor.x,
+				cur_level->joints[i].anchor.y);
+			jointDef.Initialize(objectA, objectB, anchorPoint);
 
-			// b2RevoluteJoint *joint = (b2RevoluteJoint *) world->CreateJoint(&jointDef);
-			// joints[i] = joint;
+			b2RevoluteJoint *joint = (b2RevoluteJoint *) world->CreateJoint(&jointDef);
+			joints[i] = joint;
 		}
 
 		else if (cur_level->joints[i].joint_type == JOINT_PULLEY) {
